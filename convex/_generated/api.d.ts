@@ -14,6 +14,7 @@ import type {
   FunctionReference,
 } from "convex/server";
 import type * as ai_config from "../ai/config.js";
+import type * as ai_ollamaProvider from "../ai/ollamaProvider.js";
 import type * as ai_researchAgent from "../ai/researchAgent.js";
 import type * as ai_taskDecomposer from "../ai/taskDecomposer.js";
 import type * as ai_taskSupportAgent from "../ai/taskSupportAgent.js";
@@ -37,6 +38,7 @@ import type * as users from "../users.js";
  */
 declare const fullApi: ApiFromModules<{
   "ai/config": typeof ai_config;
+  "ai/ollamaProvider": typeof ai_ollamaProvider;
   "ai/researchAgent": typeof ai_researchAgent;
   "ai/taskDecomposer": typeof ai_taskDecomposer;
   "ai/taskSupportAgent": typeof ai_taskSupportAgent;

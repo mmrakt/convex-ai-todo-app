@@ -1,5 +1,13 @@
 export const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 
+// Ollama設定
+export const OLLAMA_CONFIG = {
+  baseUrl: process.env.OLLAMA_BASE_URL || "http://localhost:11434",
+  model: process.env.OLLAMA_MODEL || "llama3.1",
+  temperature: 0.7,
+  maxTokens: 2000,
+};
+
 export const MODEL_CONFIG = {
   model: "gpt-3.5-turbo",
   temperature: 0.7,
