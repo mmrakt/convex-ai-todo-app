@@ -1,4 +1,3 @@
-"use node";
 
 import { v } from "convex/values";
 import { api } from "@/_generated/api";
@@ -21,7 +20,7 @@ export const supportTask = action({
     try {
       await checkRateLimit(ctx, identity.subject);
 
-      const task: any = await ctx.runQuery(api.tasks.get, { id: args.taskId });
+      const task = await ctx.runQuery(api.tasks.get, { id: args.taskId });
       if (!task) {
         throw new Error("タスクが見つかりません");
       }
