@@ -3,16 +3,15 @@
 import { useAuthActions } from '@convex-dev/auth/react';
 import { Authenticated, Unauthenticated, useConvexAuth } from 'convex/react';
 import { useState } from 'react';
-import { Dashboard } from '@/components/Dashboard';
 import { TaskForm } from '@/components/TaskForm';
 import { TaskList } from '@/components/TaskList';
 import { Button } from '@/components/ui';
 import type { Id } from '../convex/_generated/dataModel';
 
-type View = 'dashboard' | 'tasks' | 'create' | 'edit';
+type View = 'tasks' | 'edit';
 
 export default function App() {
-  const [currentView, setCurrentView] = useState<View>('dashboard');
+  const [currentView, setCurrentView] = useState<View>('tasks');
   const [editingTaskId, setEditingTaskId] = useState<Id<'tasks'> | undefined>();
 
   const handleEditTask = (taskId: Id<'tasks'>) => {
@@ -22,7 +21,7 @@ export default function App() {
 
   const handleCreateTask = () => {
     setEditingTaskId(undefined);
-    setCurrentView('create');
+    setCurrentView('edit');
   };
 
   const handleTaskSuccess = () => {
@@ -31,7 +30,7 @@ export default function App() {
   };
 
   const handleCancel = () => {
-    setCurrentView('dashboard');
+    setCurrentView('tasks');
     setEditingTaskId(undefined);
   };
 
@@ -43,17 +42,8 @@ export default function App() {
             <div className="flex items-center space-x-8">
               <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">AI Todo アプリ</h1>
               <nav className="hidden md:flex space-x-4">
-                <NavButton
-                  active={currentView === 'dashboard'}
-                  onClick={() => setCurrentView('dashboard')}
-                >
-                  ダッシュボード
-                </NavButton>
                 <NavButton active={currentView === 'tasks'} onClick={() => setCurrentView('tasks')}>
                   タスク一覧
-                </NavButton>
-                <NavButton active={currentView === 'create'} onClick={handleCreateTask}>
-                  新規作成
                 </NavButton>
               </nav>
             </div>
@@ -64,11 +54,10 @@ export default function App() {
 
       <main>
         <Authenticated>
-          {currentView === 'dashboard' && <Dashboard />}
           {currentView === 'tasks' && (
             <TaskList onEditTask={handleEditTask} onCreateTask={handleCreateTask} />
           )}
-          {(currentView === 'create' || currentView === 'edit') && (
+          {currentView === 'edit' && (
             <TaskForm
               taskId={editingTaskId}
               onSuccess={handleTaskSuccess}

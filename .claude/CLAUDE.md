@@ -12,7 +12,8 @@
 - barrel exports (re-exports from index.ts) are strictly prohibited
   - Reason: tree-shaking blocking, circular reference risk, bloated build size
 - Each module is imported directly and explicit dependencies are maintained
-- Absolute paths are prioritized over relative paths
+- Do not use relative paths, but use absolute paths using import alias
+  - e.g. `import { foo } from '@/foo'`
 
 #### Naming Rules
 
