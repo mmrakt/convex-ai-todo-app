@@ -3,11 +3,11 @@
 import { useAuthActions } from '@convex-dev/auth/react';
 import { Authenticated, Unauthenticated, useConvexAuth } from 'convex/react';
 import { useState } from 'react';
+import { Dashboard } from '@/components/Dashboard';
+import { TaskForm } from '@/components/TaskForm';
+import { TaskList } from '@/components/TaskList';
+import { Button } from '@/components/ui';
 import type { Id } from '../convex/_generated/dataModel';
-import { Dashboard } from './components/Dashboard';
-import { TaskForm } from './components/TaskForm';
-import { TaskList } from './components/TaskList';
-import { Button } from './components/ui';
 
 type View = 'dashboard' | 'tasks' | 'create' | 'edit';
 

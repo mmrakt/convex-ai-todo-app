@@ -1,9 +1,9 @@
 import { getAuthUserId } from "@convex-dev/auth/server";
 import { v } from "convex/values";
-import { mutation, query } from "./_generated/server";
-import { AuthenticationError, handleError } from "./lib/base";
-import { SubtaskRepository } from "./lib/repositories/subtaskRepository";
-import { TaskRepository } from "./lib/repositories/taskRepository";
+import { mutation, query } from "@/_generated/server";
+import { AuthenticationError, handleError } from "@/lib/base";
+import { SubtaskRepository } from "@/lib/repositories/subtaskRepository";
+import { TaskRepository } from "@/lib/repositories/taskRepository";
 
 export const getSubtasks = query({
   args: { taskId: v.id("tasks") },

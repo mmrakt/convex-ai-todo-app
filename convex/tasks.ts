@@ -1,8 +1,8 @@
 import { getAuthUserId } from "@convex-dev/auth/server";
 import { v } from "convex/values";
-import { mutation, query } from "./_generated/server";
-import { AuthenticationError, handleError } from "./lib/base";
-import { TaskService } from "./lib/services/taskService";
+import { mutation, query } from "@/_generated/server";
+import { AuthenticationError, handleError } from "@/lib/base";
+import { TaskService } from "@/lib/services/taskService";
 
 // Query: Get tasks with optional filters
 export const getTasks = query({

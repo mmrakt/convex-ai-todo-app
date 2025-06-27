@@ -1,6 +1,6 @@
-import type { Id } from "../../_generated/dataModel";
-import type { DatabaseReader, DatabaseWriter } from "../../_generated/server";
-import { AuthorizationError, NotFoundError } from "../base";
+import type { Id } from "@/_generated/dataModel";
+import type { DatabaseReader, DatabaseWriter } from "@/_generated/server";
+import { AuthorizationError, NotFoundError } from "@/lib/base";
 
 export interface TaskData {
   _id: Id<"tasks">;

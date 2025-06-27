@@ -1,7 +1,5 @@
 import { useAction, useMutation, useQuery } from 'convex/react';
 import { useState } from 'react';
-import { api } from '../../convex/_generated/api';
-import type { Id } from '../../convex/_generated/dataModel';
 import {
   Badge,
   Button,
@@ -12,7 +10,9 @@ import {
   getPriorityBadgeProps,
   getStatusBadgeProps,
   Select,
-} from './ui';
+} from '@/components/ui';
+import { api } from '../../convex/_generated/api';
+import type { Id } from '../../convex/_generated/dataModel';
 
 const STATUS_OPTIONS = [
   { value: '', label: 'すべてのステータス' },

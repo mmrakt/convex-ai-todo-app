@@ -1,6 +1,6 @@
-import type { Id } from "../../_generated/dataModel";
-import type { DatabaseReader, DatabaseWriter } from "../../_generated/server";
-import { NotFoundError } from "../base";
+import type { Id } from "@/_generated/dataModel";
+import type { DatabaseReader, DatabaseWriter } from "@/_generated/server";
+import { NotFoundError } from "@/lib/base";
 
 export interface SubtaskData {
   _id: Id<"subtasks">;

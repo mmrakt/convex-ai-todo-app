@@ -1,7 +1,5 @@
 import { useMutation, useQuery } from 'convex/react';
 import { useEffect, useState } from 'react';
-import { api } from '../../convex/_generated/api';
-import type { Id } from '../../convex/_generated/dataModel';
 import {
   Button,
   Card,
@@ -12,7 +10,9 @@ import {
   formatDateForInput,
   parseDateFromInput,
   Select,
-} from './ui';
+} from '@/components/ui';
+import { api } from '../../convex/_generated/api';
+import type { Id } from '../../convex/_generated/dataModel';
 
 const PRIORITY_OPTIONS = [
   { value: 'low', label: '低' },
@@ -61,7 +61,7 @@ export function TaskForm({ taskId, onSuccess, onCancel }: TaskFormProps) {
       newErrors.title = 'タイトルは必須です';
     }
 
-    if (estimatedTime && (isNaN(Number(estimatedTime)) || Number(estimatedTime) < 0)) {
+    if (estimatedTime && (Number.isNaN(Number(estimatedTime)) || Number(estimatedTime) < 0)) {
       newErrors.estimatedTime = '見積時間は正の数値で入力してください';
     }
 

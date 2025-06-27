@@ -1,8 +1,8 @@
-import { action } from "../_generated/server";
+import { action } from "@/_generated/server";
 import { v } from "convex/values";
-import { getApiConfig, rateLimiter, OLLAMA_CONFIG } from "./config";
-import { AIProviderFactory, AIRequest } from "../lib/ai/providers";
-import { handleError } from "../lib/base";
+import { getApiConfig, rateLimiter, OLLAMA_CONFIG } from "@/ai/config";
+import { AIProviderFactory, AIRequest } from "@/lib/ai/providers";
+import { handleError } from "@/lib/base";
 
 export const decomposeTask = action({
   args: {

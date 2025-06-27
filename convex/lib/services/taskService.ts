@@ -1,16 +1,16 @@
-import type { Id } from "../../_generated/dataModel";
+import type { Id } from "@/_generated/dataModel";
 import {
   type AuthenticatedMutationCtx,
   type AuthenticatedQueryCtx,
   BaseService,
   ValidationError,
-} from "../base";
-import { SubtaskRepository } from "../repositories/subtaskRepository";
+} from "@/lib/base";
+import { SubtaskRepository } from "@/lib/repositories/subtaskRepository";
 import {
   type TaskData,
   type TaskFilter,
   TaskRepository,
-} from "../repositories/taskRepository";
+} from "@/lib/repositories/taskRepository";
 
 export interface CreateTaskInput {
   title: string;

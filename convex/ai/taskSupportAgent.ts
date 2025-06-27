@@ -1,9 +1,9 @@
 "use node";
 
 import { v } from "convex/values";
-import { api } from "../_generated/api";
-import { action } from "../_generated/server";
-import { checkRateLimit, estimateTokens, OLLAMA_CONFIG } from "./config";
+import { api } from "@/_generated/api";
+import { action } from "@/_generated/server";
+import { checkRateLimit, estimateTokens, OLLAMA_CONFIG } from "@/ai/config";
 
 export const supportTask = action({
   args: {

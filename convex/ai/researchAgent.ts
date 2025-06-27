@@ -1,7 +1,7 @@
-import { action } from "../_generated/server";
+import { action } from "@/_generated/server";
 import { v } from "convex/values";
-import { internal } from "../_generated/api";
-import { getApiConfig, rateLimiter, withRetry, AIServiceError, estimateTokens, calculateCost } from "./config";
+import { internal } from "@/_generated/api";
+import { getApiConfig, rateLimiter, withRetry, AIServiceError, estimateTokens, calculateCost } from "@/ai/config";
 
 export const researchTopic = action({
   args: {

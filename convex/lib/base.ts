@@ -4,7 +4,7 @@ import {
   ActionCtx,
   type MutationCtx,
   type QueryCtx,
-} from "../_generated/server";
+} from "@/_generated/server";
 
 // Base error types for better error handling
 export class AppError extends Error {

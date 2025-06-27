@@ -4,8 +4,8 @@ import {
   calculateCost,
   estimateTokens,
   withRetry,
-} from "../../ai/config";
-import { AppError } from "../base";
+} from "@/ai/config";
+import { AppError } from "@/lib/base";
 
 // Common types for AI providers
 export interface AIRequest {
