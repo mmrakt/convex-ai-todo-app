@@ -1,162 +1,169 @@
-import { getAuthUserId } from '@convex-dev/auth/server';
-import { mutation, query } from './_generated/server';
-import { v } from 'convex/values';
+import { getAuthUserId } from "@convex-dev/auth/server";
+import { v } from "convex/values";
+import { mutation, query } from "./_generated/server";
+import { AuthenticationError, handleError } from "./lib/base";
+import { SubtaskRepository } from "./lib/repositories/subtaskRepository";
+import { TaskRepository } from "./lib/repositories/taskRepository";
 
 export const getSubtasks = query({
-  args: { taskId: v.id('tasks') },
+  args: { taskId: v.id("tasks") },
   handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) {
+    try {
+      const userId = await getAuthUserId(ctx);
+      if (!userId) {
+        return [];
+      }
+
+      const taskRepo = new TaskRepository(ctx.db);
+      // Verify task ownership
+      await taskRepo.findByIdAndUserId(args.taskId, userId);
+
+      const subtaskRepo = new SubtaskRepository(ctx.db);
+      return await subtaskRepo.findByTaskId(args.taskId);
+    } catch (error) {
+      // Return empty array for errors to maintain backwards compatibility
       return [];
     }
-
-    const task = await ctx.db.get(args.taskId);
-    if (!task || task.userId !== userId) {
-      return [];
-    }
-
-    return await ctx.db
-      .query('subtasks')
-      .withIndex('by_task', (q) => q.eq('taskId', args.taskId))
-      .order('asc')
-      .collect();
   },
 });
 
 export const createSubtask = mutation({
   args: {
-    taskId: v.id('tasks'),
+    taskId: v.id("tasks"),
     title: v.string(),
   },
   handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) {
-      throw new Error('認証が必要です');
+    try {
+      const userId = await getAuthUserId(ctx);
+      if (!userId) {
+        throw new AuthenticationError();
+      }
+
+      const taskRepo = new TaskRepository(ctx.db);
+      // Verify task ownership
+      await taskRepo.findByIdAndUserId(args.taskId, userId);
+
+      const subtaskRepo = new SubtaskRepository(ctx.db);
+      return await subtaskRepo.create(args);
+    } catch (error) {
+      throw handleError(error);
     }
-
-    const task = await ctx.db.get(args.taskId);
-    if (!task || task.userId !== userId) {
-      throw new Error('タスクが見つからないか、権限がありません');
-    }
-
-    const existingSubtasks = await ctx.db
-      .query('subtasks')
-      .withIndex('by_task', (q) => q.eq('taskId', args.taskId))
-      .collect();
-
-    const maxOrder = existingSubtasks.length > 0 
-      ? Math.max(...existingSubtasks.map(s => s.order))
-      : 0;
-
-    return await ctx.db.insert('subtasks', {
-      taskId: args.taskId,
-      title: args.title,
-      completed: false,
-      order: maxOrder + 1,
-      createdAt: Date.now(),
-    });
   },
 });
 
 export const updateSubtask = mutation({
   args: {
-    subtaskId: v.id('subtasks'),
+    subtaskId: v.id("subtasks"),
     title: v.optional(v.string()),
     completed: v.optional(v.boolean()),
     order: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) {
-      throw new Error('認証が必要です');
+    try {
+      const userId = await getAuthUserId(ctx);
+      if (!userId) {
+        throw new AuthenticationError();
+      }
+
+      const subtaskRepo = new SubtaskRepository(ctx.db);
+      const taskRepo = new TaskRepository(ctx.db);
+
+      // Get subtask and verify ownership through task
+      const subtask = await subtaskRepo.findById(args.subtaskId);
+      if (!subtask) {
+        throw new Error("サブタスクが見つかりません");
+      }
+
+      await taskRepo.findByIdAndUserId(subtask.taskId, userId);
+
+      const { subtaskId, ...updateFields } = args;
+      return await subtaskRepo.update(subtaskId, updateFields);
+    } catch (error) {
+      throw handleError(error);
     }
-
-    const subtask = await ctx.db.get(args.subtaskId);
-    if (!subtask) {
-      throw new Error('サブタスクが見つかりません');
-    }
-
-    const task = await ctx.db.get(subtask.taskId);
-    if (!task || task.userId !== userId) {
-      throw new Error('権限がありません');
-    }
-
-    const { subtaskId, ...updateFields } = args;
-    const fieldsToUpdate = Object.fromEntries(
-      Object.entries(updateFields).filter(([_, value]) => value !== undefined)
-    );
-
-    return await ctx.db.patch(args.subtaskId, fieldsToUpdate);
   },
 });
 
 export const toggleSubtask = mutation({
-  args: { subtaskId: v.id('subtasks') },
+  args: { subtaskId: v.id("subtasks") },
   handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) {
-      throw new Error('認証が必要です');
-    }
+    try {
+      const userId = await getAuthUserId(ctx);
+      if (!userId) {
+        throw new AuthenticationError();
+      }
 
-    const subtask = await ctx.db.get(args.subtaskId);
-    if (!subtask) {
-      throw new Error('サブタスクが見つかりません');
-    }
+      const subtaskRepo = new SubtaskRepository(ctx.db);
+      const taskRepo = new TaskRepository(ctx.db);
 
-    const task = await ctx.db.get(subtask.taskId);
-    if (!task || task.userId !== userId) {
-      throw new Error('権限がありません');
-    }
+      // Get subtask and verify ownership through task
+      const subtask = await subtaskRepo.findById(args.subtaskId);
+      if (!subtask) {
+        throw new Error("サブタスクが見つかりません");
+      }
 
-    return await ctx.db.patch(args.subtaskId, {
-      completed: !subtask.completed,
-    });
+      await taskRepo.findByIdAndUserId(subtask.taskId, userId);
+
+      return await subtaskRepo.toggle(args.subtaskId);
+    } catch (error) {
+      throw handleError(error);
+    }
   },
 });
 
 export const deleteSubtask = mutation({
-  args: { subtaskId: v.id('subtasks') },
+  args: { subtaskId: v.id("subtasks") },
   handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) {
-      throw new Error('認証が必要です');
-    }
+    try {
+      const userId = await getAuthUserId(ctx);
+      if (!userId) {
+        throw new AuthenticationError();
+      }
 
-    const subtask = await ctx.db.get(args.subtaskId);
-    if (!subtask) {
-      throw new Error('サブタスクが見つかりません');
-    }
+      const subtaskRepo = new SubtaskRepository(ctx.db);
+      const taskRepo = new TaskRepository(ctx.db);
 
-    const task = await ctx.db.get(subtask.taskId);
-    if (!task || task.userId !== userId) {
-      throw new Error('権限がありません');
-    }
+      // Get subtask and verify ownership through task
+      const subtask = await subtaskRepo.findById(args.subtaskId);
+      if (!subtask) {
+        throw new Error("サブタスクが見つかりません");
+      }
 
-    return await ctx.db.delete(args.subtaskId);
+      await taskRepo.findByIdAndUserId(subtask.taskId, userId);
+
+      return await subtaskRepo.delete(args.subtaskId);
+    } catch (error) {
+      throw handleError(error);
+    }
   },
 });
 
 export const reorderSubtasks = mutation({
   args: {
-    taskId: v.id('tasks'),
-    subtaskOrders: v.array(v.object({
-      subtaskId: v.id('subtasks'),
-      order: v.number(),
-    })),
+    taskId: v.id("tasks"),
+    subtaskOrders: v.array(
+      v.object({
+        subtaskId: v.id("subtasks"),
+        order: v.number(),
+      })
+    ),
   },
   handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) {
-      throw new Error('認証が必要です');
-    }
+    try {
+      const userId = await getAuthUserId(ctx);
+      if (!userId) {
+        throw new AuthenticationError();
+      }
 
-    const task = await ctx.db.get(args.taskId);
-    if (!task || task.userId !== userId) {
-      throw new Error('権限がありません');
-    }
+      const taskRepo = new TaskRepository(ctx.db);
+      const subtaskRepo = new SubtaskRepository(ctx.db);
 
-    for (const { subtaskId, order } of args.subtaskOrders) {
-      await ctx.db.patch(subtaskId, { order });
+      // Verify task ownership
+      await taskRepo.findByIdAndUserId(args.taskId, userId);
+
+      await subtaskRepo.reorder(args.taskId, args.subtaskOrders);
+    } catch (error) {
+      throw handleError(error);
     }
   },
 });

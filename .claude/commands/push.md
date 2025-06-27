@@ -1,5 +1,5 @@
-現在の git の変更ファイルを全て commit、push して。
-コミットメッセージは以下のルールに従うこと
+commit and push all current changes to git.
+follow the following rules for the commit message
 
-- 多くても３行程度にまとめること
-- author の名前や連絡先は含めないこと
+- summarize up to 3 lines
+- add prefix (e.g. feat:, fix:, docs:, chore:, etc.)

@@ -1,7 +1,6 @@
 "use node";
 
 import { v } from "convex/values";
-import { Ollama } from "ollama";
 import { api } from "../_generated/api";
 import { action } from "../_generated/server";
 import { checkRateLimit, estimateTokens, OLLAMA_CONFIG } from "./config";
@@ -73,18 +72,30 @@ ${
       let supportContent: string;
 
       try {
-        const ollama = new Ollama({ host: OLLAMA_CONFIG.baseUrl });
-
-        const response = await ollama.chat({
-          model: OLLAMA_CONFIG.model,
-          messages: [{ role: "user", content: prompt }],
-          options: {
-            temperature: OLLAMA_CONFIG.temperature,
-            num_predict: OLLAMA_CONFIG.maxTokens,
+        const response = await fetch(`${OLLAMA_CONFIG.baseUrl}/api/chat`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
           },
+          body: JSON.stringify({
+            model: OLLAMA_CONFIG.model,
+            messages: [{ role: "user", content: prompt }],
+            options: {
+              temperature: OLLAMA_CONFIG.temperature,
+              num_predict: OLLAMA_CONFIG.maxTokens,
+            },
+            stream: false,
+          }),
         });
 
-        supportContent = response.message.content;
+        if (!response.ok) {
+          throw new Error(
+            `Ollama API error: ${response.status} ${response.statusText}`
+          );
+        }
+
+        const data = await response.json();
+        supportContent = data.message.content;
       } catch (ollamaError) {
         console.warn(
           "Ollama実行エラー、フォールバック応答を使用:",
