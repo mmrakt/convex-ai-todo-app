@@ -114,6 +114,7 @@ interface TaskSupportModalProps {
 export function TaskSupportModal({ taskId, taskTitle, isOpen, onClose }: TaskSupportModalProps) {
   const supportTask = useAction(api.ai.taskSupportAgent.supportTask);
   const task = useQuery(api.tasks.get, { id: taskId });
+  const latestSupport = useQuery(api.aiContents.getLatestSupport, { taskId });
   const [isRequestingNew, setIsRequestingNew] = useState(false);
   const [error, setError] = useState<string>('');
 
@@ -286,11 +287,37 @@ export function TaskSupportModal({ taskId, taskTitle, isOpen, onClose }: TaskSup
 
           {hasContent && (
             <div className="prose prose-sm max-w-none dark:prose-invert">
-              <div className="mb-4 text-xs text-gray-500 dark:text-gray-400">
-                Generated{' '}
-                {task?.aiSupportGeneratedAt
-                  ? new Date(task.aiSupportGeneratedAt).toLocaleString()
-                  : 'recently'}
+              <div className="mb-4 flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
+                <div>
+                  Generated{' '}
+                  {task?.aiSupportGeneratedAt
+                    ? new Date(task.aiSupportGeneratedAt).toLocaleString()
+                    : 'recently'}
+                </div>
+                {latestSupport?.metadata && (
+                  <div className="flex items-center gap-2">
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      aria-label="AI model"
+                    >
+                      <title>AI model</title>
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"
+                      />
+                    </svg>
+                    <span className="font-medium">
+                      {latestSupport.metadata.provider
+                        ? `${latestSupport.metadata.provider.charAt(0).toUpperCase() + latestSupport.metadata.provider.slice(1)} - ${latestSupport.metadata.model}`
+                        : latestSupport.metadata.model}
+                    </span>
+                  </div>
+                )}
               </div>
               <MarkdownContent content={task?.aiSupportContent || ''} />
             </div>

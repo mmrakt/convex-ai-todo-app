@@ -13,6 +13,7 @@ import type {
   FilterApi,
   FunctionReference,
 } from "convex/server";
+import type * as ai_aiService from "../ai/aiService.js";
 import type * as ai_config from "../ai/config.js";
 import type * as ai_researchAgent from "../ai/researchAgent.js";
 import type * as ai_taskDecomposer from "../ai/taskDecomposer.js";
@@ -42,6 +43,7 @@ import type * as users from "../users.js";
  * ```
  */
 declare const fullApi: ApiFromModules<{
+  "ai/aiService": typeof ai_aiService;
   "ai/config": typeof ai_config;
   "ai/researchAgent": typeof ai_researchAgent;
   "ai/taskDecomposer": typeof ai_taskDecomposer;

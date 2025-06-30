@@ -72,6 +72,7 @@ export default defineSchema({
     ),
     content: v.string(),
     metadata: v.optional(v.object({
+      provider: v.optional(v.string()),
       model: v.string(),
       tokens: v.number(),
       cost: v.number(),

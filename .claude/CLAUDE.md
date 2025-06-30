@@ -50,6 +50,7 @@
 
 ### GitHub Usage Rules
 
+- When task completed, execute `pnpm check:fix` to format file changes
 - Commit messages must use one of the following prefixes: chore, fix, feat, docs
 - Commit messages should be written in Japanese describing what was changed and why
 - Make commits frequently with very small granularity

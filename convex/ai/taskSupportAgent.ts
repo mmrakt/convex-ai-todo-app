@@ -1,8 +1,13 @@
-
 import { v } from "convex/values";
 import { api } from "@/_generated/api";
 import { action } from "@/_generated/server";
-import { checkRateLimit, estimateTokens, OLLAMA_CONFIG } from "@/ai/config";
+import { callAI, createUserMessage } from "@/ai/aiService";
+import {
+  AI_PROVIDER,
+  checkRateLimit,
+  estimateTokens,
+  getCurrentProviderConfig,
+} from "@/ai/config";
 
 export const supportTask = action({
   args: {
@@ -38,8 +43,8 @@ create an execution plan, and summarize the support content in markdown format.
 
 Task Information:
 - Title: ${task.title}
-- Description: ${task.description || 'No description provided'}
-- Category: ${task.category || 'No category'}
+- Description: ${task.description || "No description provided"}
+- Category: ${task.category || "No category"}
 - Priority: ${task.priority}
 ${
   task.deadline
@@ -75,36 +80,20 @@ Please output in markdown format with a readable and well-structured layout.
 `;
 
       let supportContent: string;
+      let cost = 0;
+      let totalTokens = 0;
 
       try {
-        const response = await fetch(`${OLLAMA_CONFIG.baseUrl}/api/chat`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            model: OLLAMA_CONFIG.model,
-            messages: [{ role: "user", content: prompt }],
-            options: {
-              temperature: OLLAMA_CONFIG.temperature,
-              num_predict: OLLAMA_CONFIG.maxTokens,
-            },
-            stream: false,
-          }),
-        });
-
-        if (!response.ok) {
-          throw new Error(
-            `Ollama API error: ${response.status} ${response.statusText}`
-          );
-        }
-
-        const data = await response.json();
-        supportContent = data.message.content;
-      } catch (ollamaError) {
+        const aiResponse = await callAI(createUserMessage(prompt));
+        supportContent = aiResponse.content;
+        cost = aiResponse.cost || 0;
+        totalTokens =
+          aiResponse.tokens ||
+          estimateTokens(prompt) + estimateTokens(supportContent);
+      } catch (aiError) {
         console.warn(
-          "Ollama execution error, using fallback response:",
-          ollamaError
+          `${AI_PROVIDER} execution error, using fallback response:`,
+          aiError
         );
         // フォールバック: 静的なテンプレート応答
         supportContent = `
@@ -121,7 +110,7 @@ ${task.description || "No description provided"}
 4. **Verification**: Confirm completion of each step
 
 ## Related Information and Resources
-- Category: ${task.category || 'No category'}
+- Category: ${task.category || "No category"}
 - Priority: ${task.priority}
 ${
   task.deadline
@@ -130,20 +119,18 @@ ${
 }
 
 ## Implementation Notes
-- Since the priority is ${task.priority}, please allocate resources appropriately
+- Since the priority is ${
+          task.priority
+        }, please allocate resources appropriately
 - If there's a deadline, plan with sufficient buffer time
 
 ## Next Actions
 We recommend starting with information gathering and then creating a specific plan.
 
-*Note: This is a fallback response when Ollama is not available.*
+*Note: This is a fallback response when AI provider (${AI_PROVIDER}) is not available.*
         `;
+        totalTokens = estimateTokens(prompt) + estimateTokens(supportContent);
       }
-
-      // Ollamaはローカル実行なのでコストは0
-      const cost = 0;
-      const totalTokens =
-        estimateTokens(prompt) + estimateTokens(supportContent);
 
       // Update task with completed AI support
       await ctx.runMutation(api.tasks.updateAISupport, {
@@ -157,12 +144,14 @@ We recommend starting with information gathering and then creating a specific pl
         memo: supportContent,
       });
 
+      const currentConfig = getCurrentProviderConfig();
       await ctx.runMutation(api.ai.logAIContent, {
         taskId: args.taskId,
         type: "suggestion",
         content: supportContent,
         metadata: {
-          model: OLLAMA_CONFIG.model,
+          provider: AI_PROVIDER,
+          model: currentConfig.model,
           tokens: totalTokens,
           cost,
         },
@@ -171,13 +160,13 @@ We recommend starting with information gathering and then creating a specific pl
       return { success: true, content: supportContent };
     } catch (error) {
       console.error("Task support error:", error);
-      
+
       // Update status to error
       await ctx.runMutation(api.tasks.updateAISupport, {
         taskId: args.taskId,
         status: "error",
       });
-      
+
       return {
         success: false,
         error:

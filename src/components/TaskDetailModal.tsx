@@ -7,6 +7,106 @@ import { TaskSupportModal } from './TaskSupportModal';
 import { Badge, getPriorityBadgeProps } from './ui';
 import { Button } from './ui/Button';
 
+// Safe markdown content renderer component
+function MarkdownContent({ content }: { content: string }) {
+  // Parse the content safely
+  const parseContent = (text: string) => {
+    const lines = text.split('\n');
+    const elements: React.ReactNode[] = [];
+    let currentList: string[] = [];
+    let listKey = 0;
+
+    const flushList = () => {
+      if (currentList.length > 0) {
+        elements.push(
+          <ul key={`list-${listKey++}`} className="list-disc ml-6 mb-4">
+            {currentList.map((item, idx) => (
+              <li key={`list-item-${listKey}-${item.slice(0, 20)}-${idx}`} className="mb-1">
+                {item}
+              </li>
+            ))}
+          </ul>,
+        );
+        currentList = [];
+      }
+    };
+
+    lines.forEach((line, index) => {
+      // Headers
+      const headerMatch = line.match(/^(#{1,6})\s+(.+)$/);
+      if (headerMatch) {
+        flushList();
+        const level = headerMatch[1].length;
+        const HeaderTag = `h${Math.min(level, 6)}` as keyof JSX.IntrinsicElements;
+        elements.push(
+          <HeaderTag
+            key={`header-${index}-${line.slice(0, 20)}`}
+            className="text-lg font-semibold mt-6 mb-3 text-gray-900 dark:text-gray-100"
+          >
+            {headerMatch[2]}
+          </HeaderTag>,
+        );
+        return;
+      }
+
+      // Bold text
+      const boldMatch = line.match(/^\*\*(.+)\*\*$/);
+      if (boldMatch) {
+        flushList();
+        elements.push(
+          <strong
+            key={`bold-${index}-${boldMatch[1].slice(0, 20)}`}
+            className="font-semibold text-gray-900 dark:text-gray-100 block mb-2"
+          >
+            {boldMatch[1]}
+          </strong>,
+        );
+        return;
+      }
+
+      // List items
+      const listMatch = line.match(/^-\s+(.+)$/);
+      if (listMatch) {
+        currentList.push(listMatch[1]);
+        return;
+      }
+
+      // Numbered list with bold
+      const numberedMatch = line.match(/^\d+\.\s+\*\*(.+)\*\*:\s*(.+)$/);
+      if (numberedMatch) {
+        flushList();
+        elements.push(
+          <div key={`numbered-${index}-${numberedMatch[1].slice(0, 20)}`} className="mb-3">
+            <strong className="font-semibold text-gray-900 dark:text-gray-100">
+              {numberedMatch[1]}:
+            </strong>{' '}
+            {numberedMatch[2]}
+          </div>,
+        );
+        return;
+      }
+
+      // Regular text (non-empty lines)
+      if (line.trim()) {
+        flushList();
+        elements.push(
+          <p
+            key={`paragraph-${index}-${line.slice(0, 20)}`}
+            className="mb-2 text-gray-900 dark:text-gray-100"
+          >
+            {line}
+          </p>,
+        );
+      }
+    });
+
+    flushList();
+    return elements;
+  };
+
+  return <div className="markdown-content">{parseContent(content)}</div>;
+}
+
 interface TaskDetailModalProps {
   taskId: Id<'tasks'>;
   isOpen: boolean;
@@ -15,6 +115,7 @@ interface TaskDetailModalProps {
 
 export function TaskDetailModal({ taskId, isOpen, onClose }: TaskDetailModalProps) {
   const task = useQuery(api.tasks.get, { id: taskId });
+  const latestSupport = useQuery(api.aiContents.getLatestSupport, { taskId });
   const [showEditModal, setShowEditModal] = useState(false);
   const [showSupportModal, setShowSupportModal] = useState(false);
   const modalRef = useRef<HTMLDivElement>(null);
@@ -88,11 +189,15 @@ export function TaskDetailModal({ taskId, isOpen, onClose }: TaskDetailModalProp
 
   return (
     <>
-      <div className={`fixed inset-0 bg-white/10 dark:bg-black/10 backdrop-blur-none z-50 transition-all duration-200 ${isAnimating ? 'opacity-100' : 'opacity-0'}`}>
+      <div
+        className={`fixed inset-0 bg-white/10 dark:bg-black/10 backdrop-blur-none z-50 transition-all duration-200 ${
+          isAnimating ? 'opacity-100' : 'opacity-0'
+        }`}
+      >
         <div className="flex items-center justify-center min-h-full p-4">
           <div
             ref={modalRef}
-            className={`bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-600 max-w-2xl w-full max-h-[90vh] overflow-hidden transform transition-all duration-200 ${
+            className={`bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-600 max-w-2xl w-full max-h-[120vh] overflow-hidden transform transition-all duration-200 ${
               isAnimating ? 'scale-100 opacity-100' : 'scale-95 opacity-0'
             }`}
           >
@@ -248,10 +353,10 @@ export function TaskDetailModal({ taskId, isOpen, onClose }: TaskDetailModalProp
                   <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Notes
                   </h3>
-                  <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg">
-                    <p className="text-gray-900 dark:text-gray-100 text-sm leading-relaxed whitespace-pre-wrap">
-                      {task.memo}
-                    </p>
+                  <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg max-h-100 overflow-y-auto">
+                    <div className="text-sm">
+                      <MarkdownContent content={task.memo} />
+                    </div>
                   </div>
                 </div>
               )}
@@ -262,26 +367,57 @@ export function TaskDetailModal({ taskId, isOpen, onClose }: TaskDetailModalProp
                   <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     AI Support
                   </h3>
-                  <div className="flex items-center gap-2">
-                    <Badge
-                      variant={
-                        task.aiSupportStatus === 'completed'
-                          ? 'default'
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <Badge
+                        variant={
+                          task.aiSupportStatus === 'completed'
+                            ? 'default'
+                            : task.aiSupportStatus === 'generating'
+                              ? 'secondary'
+                              : 'destructive'
+                        }
+                      >
+                        {task.aiSupportStatus === 'completed'
+                          ? 'Available'
                           : task.aiSupportStatus === 'generating'
-                            ? 'secondary'
-                            : 'destructive'
-                      }
-                    >
-                      {task.aiSupportStatus === 'completed'
-                        ? 'Available'
-                        : task.aiSupportStatus === 'generating'
-                          ? 'Generating...'
-                          : 'Failed'}
-                    </Badge>
-                    {task.aiSupportGeneratedAt && (
-                      <span className="text-xs text-gray-500 dark:text-gray-400">
-                        {new Date(task.aiSupportGeneratedAt).toLocaleString()}
-                      </span>
+                            ? 'Generating...'
+                            : 'Failed'}
+                      </Badge>
+                      {task.aiSupportGeneratedAt && (
+                        <span className="text-xs text-gray-500 dark:text-gray-400">
+                          {new Date(task.aiSupportGeneratedAt).toLocaleString()}
+                        </span>
+                      )}
+                    </div>
+                    {latestSupport?.metadata && task.aiSupportStatus === 'completed' && (
+                      <div className="flex items-center gap-2">
+                        <svg
+                          className="w-4 h-4 text-gray-500 dark:text-gray-400"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                          aria-label="AI model"
+                        >
+                          <title>AI model</title>
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"
+                          />
+                        </svg>
+                        <span className="text-xs text-gray-600 dark:text-gray-400">
+                          {latestSupport.metadata.provider
+                            ? `${latestSupport.metadata.provider.charAt(0).toUpperCase() + latestSupport.metadata.provider.slice(1)} - ${latestSupport.metadata.model}`
+                            : latestSupport.metadata.model}
+                        </span>
+                        {latestSupport.metadata.tokens && (
+                          <span className="text-xs text-gray-500 dark:text-gray-500">
+                            • {latestSupport.metadata.tokens.toLocaleString()} tokens
+                          </span>
+                        )}
+                      </div>
                     )}
                   </div>
                 </div>

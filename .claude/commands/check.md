@@ -1,7 +1,12 @@
 check lint and type-check, unit-test errors, and fix them.
 
-refs.
+```sh
+// check
+pnpm check:fix
 
-- ./lint-format.md
-- ./tc.md
-- ./test.md
+// type-check
+pnpm tc
+
+// unit-test
+pnpm test
+```

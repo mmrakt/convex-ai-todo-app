@@ -1,6 +1,6 @@
-import { mutation } from "./_generated/server";
-import { v } from "convex/values";
 import { getAuthUserId } from "@convex-dev/auth/server";
+import { v } from "convex/values";
+import { mutation } from "./_generated/server";
 
 export const logAIContent = mutation({
   args: {
@@ -11,11 +11,14 @@ export const logAIContent = mutation({
       v.literal("suggestion")
     ),
     content: v.string(),
-    metadata: v.optional(v.object({
-      model: v.string(),
-      tokens: v.number(),
-      cost: v.number(),
-    })),
+    metadata: v.optional(
+      v.object({
+        provider: v.optional(v.string()),
+        model: v.string(),
+        tokens: v.number(),
+        cost: v.number(),
+      })
+    ),
   },
   handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx);

@@ -46,6 +46,23 @@ export const getByTask = query({
   },
 });
 
+// Get the latest support content for a task
+export const getLatestSupport = query({
+  args: {
+    taskId: v.id("tasks"),
+  },
+  handler: async (ctx, args) => {
+    const latest = await ctx.db
+      .query("aiContents")
+      .withIndex("by_task", (q) => q.eq("taskId", args.taskId))
+      .filter((q) => q.eq(q.field("type"), "suggestion"))
+      .order("desc")
+      .first();
+    
+    return latest;
+  },
+});
+
 // AIコンテンツの削除
 export const deleteByTask = internalMutation({
   args: {
