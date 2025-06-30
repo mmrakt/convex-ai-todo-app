@@ -4,6 +4,106 @@ import { api } from '../../convex/_generated/api';
 import type { Id } from '../../convex/_generated/dataModel';
 import { Button } from './ui/Button';
 
+// Safe markdown content renderer component
+function MarkdownContent({ content }: { content: string }) {
+  // Parse the content safely
+  const parseContent = (text: string) => {
+    const lines = text.split('\n');
+    const elements: React.ReactNode[] = [];
+    let currentList: string[] = [];
+    let listKey = 0;
+
+    const flushList = () => {
+      if (currentList.length > 0) {
+        elements.push(
+          <ul key={`list-${listKey++}`} className="list-disc ml-6 mb-4">
+            {currentList.map((item, idx) => (
+              <li key={`list-item-${listKey}-${item.slice(0, 20)}-${idx}`} className="mb-1">
+                {item}
+              </li>
+            ))}
+          </ul>,
+        );
+        currentList = [];
+      }
+    };
+
+    lines.forEach((line, index) => {
+      // Headers
+      const headerMatch = line.match(/^(#{1,6})\s+(.+)$/);
+      if (headerMatch) {
+        flushList();
+        const level = headerMatch[1].length;
+        const HeaderTag = `h${Math.min(level, 6)}` as keyof JSX.IntrinsicElements;
+        elements.push(
+          <HeaderTag
+            key={`header-${index}-${line.slice(0, 20)}`}
+            className="text-lg font-semibold mt-6 mb-3 text-gray-900 dark:text-gray-100"
+          >
+            {headerMatch[2]}
+          </HeaderTag>,
+        );
+        return;
+      }
+
+      // Bold text
+      const boldMatch = line.match(/^\*\*(.+)\*\*$/);
+      if (boldMatch) {
+        flushList();
+        elements.push(
+          <strong
+            key={`bold-${index}-${boldMatch[1].slice(0, 20)}`}
+            className="font-semibold text-gray-900 dark:text-gray-100 block mb-2"
+          >
+            {boldMatch[1]}
+          </strong>,
+        );
+        return;
+      }
+
+      // List items
+      const listMatch = line.match(/^-\s+(.+)$/);
+      if (listMatch) {
+        currentList.push(listMatch[1]);
+        return;
+      }
+
+      // Numbered list with bold
+      const numberedMatch = line.match(/^\d+\.\s+\*\*(.+)\*\*:\s*(.+)$/);
+      if (numberedMatch) {
+        flushList();
+        elements.push(
+          <div key={`numbered-${index}-${numberedMatch[1].slice(0, 20)}`} className="mb-3">
+            <strong className="font-semibold text-gray-900 dark:text-gray-100">
+              {numberedMatch[1]}:
+            </strong>{' '}
+            {numberedMatch[2]}
+          </div>,
+        );
+        return;
+      }
+
+      // Regular text (non-empty lines)
+      if (line.trim()) {
+        flushList();
+        elements.push(
+          <p
+            key={`paragraph-${index}-${line.slice(0, 20)}`}
+            className="mb-2 text-gray-900 dark:text-gray-100"
+          >
+            {line}
+          </p>,
+        );
+      }
+    });
+
+    flushList();
+    return elements;
+  };
+
+  return <div className="markdown-content">{parseContent(content)}</div>;
+}
+
 interface TaskSupportModalProps {
   taskId: Id<'tasks'>;
   taskTitle: string;
@@ -62,7 +162,9 @@ export function TaskSupportModal({ taskId, taskTitle, isOpen, onClose }: TaskSup
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
+                  aria-label="AI lightbulb"
                 >
+                  <title>AI lightbulb icon</title>
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -81,10 +183,18 @@ export function TaskSupportModal({ taskId, taskTitle, isOpen, onClose }: TaskSup
               </div>
             </div>
             <button
+              type="button"
               onClick={handleClose}
               className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
             >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg
+                className="w-6 h-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                aria-label="Close modal"
+              >
+                <title>Close modal</title>
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -105,7 +215,9 @@ export function TaskSupportModal({ taskId, taskTitle, isOpen, onClose }: TaskSup
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
+                  aria-label="AI lightbulb"
                 >
+                  <title>AI lightbulb ready to help</title>
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -149,7 +261,9 @@ export function TaskSupportModal({ taskId, taskTitle, isOpen, onClose }: TaskSup
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
+                  aria-label="Error"
                 >
+                  <title>Error icon</title>
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -178,26 +292,7 @@ export function TaskSupportModal({ taskId, taskTitle, isOpen, onClose }: TaskSup
                   ? new Date(task.aiSupportGeneratedAt).toLocaleString()
                   : 'recently'}
               </div>
-              <div
-                className="markdown-content"
-                dangerouslySetInnerHTML={{
-                  __html: (task?.aiSupportContent || '')
-                    .replace(/\n/g, '<br>')
-                    .replace(/^#{1,6}\s+(.+)$/gm, (match, title) => {
-                      const level = match.indexOf(' ');
-                      return `<h${level} class="text-lg font-semibold mt-6 mb-3 text-gray-900 dark:text-gray-100">${title}</h${level}>`;
-                    })
-                    .replace(
-                      /^\*\*(.+)\*\*$/gm,
-                      '<strong class="font-semibold text-gray-900 dark:text-gray-100">$1</strong>',
-                    )
-                    .replace(/^- (.+)$/gm, '<li class="ml-4">$1</li>')
-                    .replace(
-                      /^\d+\.\s+\*\*(.+)\*\*:\s*(.+)$/gm,
-                      '<div class="mb-3"><strong class="font-semibold text-gray-900 dark:text-gray-100">$1:</strong> $2</div>',
-                    ),
-                }}
-              />
+              <MarkdownContent content={task?.aiSupportContent || ''} />
             </div>
           )}
         </div>

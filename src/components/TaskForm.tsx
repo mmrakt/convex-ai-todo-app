@@ -1,5 +1,5 @@
 import { useMutation, useQuery } from 'convex/react';
-import { useEffect, useState } from 'react';
+import { useEffect, useId, useState } from 'react';
 import {
   Button,
   Card,
@@ -28,6 +28,11 @@ interface TaskFormProps {
 }
 
 export function TaskForm({ taskId, onSuccess, onCancel }: TaskFormProps) {
+  const titleId = useId();
+  const descriptionId = useId();
+  const categoryId = useId();
+  const estimatedTimeId = useId();
+
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [priority, setPriority] = useState('medium');
@@ -126,13 +131,13 @@ export function TaskForm({ taskId, onSuccess, onCancel }: TaskFormProps) {
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <label
-                htmlFor="title"
+                htmlFor={titleId}
                 className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
               >
                 Title *
               </label>
               <input
-                id="title"
+                id={titleId}
                 type="text"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
@@ -151,13 +156,13 @@ export function TaskForm({ taskId, onSuccess, onCancel }: TaskFormProps) {
 
             <div>
               <label
-                htmlFor="description"
+                htmlFor={descriptionId}
                 className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
               >
                 Description
               </label>
               <textarea
-                id="description"
+                id={descriptionId}
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 className="block w-full rounded-md border border-gray-300 dark:border-gray-600 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:border-blue-400 focus:ring-offset-2 focus:outline-none p-3 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
@@ -184,13 +189,13 @@ export function TaskForm({ taskId, onSuccess, onCancel }: TaskFormProps) {
 
               <div>
                 <label
-                  htmlFor="category"
+                  htmlFor={categoryId}
                   className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
                 >
                   Category
                 </label>
                 <input
-                  id="category"
+                  id={categoryId}
                   type="text"
                   value={category}
                   onChange={(e) => setCategory(e.target.value)}
@@ -210,13 +215,13 @@ export function TaskForm({ taskId, onSuccess, onCancel }: TaskFormProps) {
 
               <div>
                 <label
-                  htmlFor="estimatedTime"
+                  htmlFor={estimatedTimeId}
                   className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
                 >
                   Estimated Time (minutes)
                 </label>
                 <input
-                  id="estimatedTime"
+                  id={estimatedTimeId}
                   type="number"
                   value={estimatedTime}
                   onChange={(e) => setEstimatedTime(e.target.value)}

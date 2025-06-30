@@ -20,7 +20,7 @@ interface KanbanCardProps {
 
 export const KanbanCard = memo(function KanbanCard({
   task,
-  onEdit,
+  onEdit: _onEdit,
   onDragStart,
   onDragEnd,
   isDragging,
@@ -61,7 +61,7 @@ export const KanbanCard = memo(function KanbanCard({
   }, []);
 
   const handleTitleClick = useCallback(
-    (e: React.MouseEvent) => {
+    (e: React.MouseEvent<HTMLButtonElement>) => {
       e.stopPropagation();
       if (!isDragging) {
         setIsEditingTitle(true);
@@ -230,7 +230,13 @@ export const KanbanCard = memo(function KanbanCard({
                     type="button"
                   >
                     {task.status === 'completed' && (
-                      <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                      <svg
+                        className="w-3 h-3 text-white"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                        aria-label="Task completed"
+                      >
+                        <title>Task completed checkmark</title>
                         <path
                           fillRule="evenodd"
                           d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
@@ -251,12 +257,14 @@ export const KanbanCard = memo(function KanbanCard({
                       disabled={isDragging}
                     />
                   ) : (
-                    <h4
-                      className={`text-sm font-medium flex-1 cursor-text ${task.status === 'completed' ? 'line-through text-gray-500' : 'text-gray-900 dark:text-gray-100'} hover:bg-gray-50 dark:hover:bg-gray-600 rounded px-1 py-0.5 -mx-1 -my-0.5 transition-colors`}
+                    <button
+                      type="button"
+                      className={`text-sm font-medium flex-1 cursor-text text-left ${task.status === 'completed' ? 'line-through text-gray-500' : 'text-gray-900 dark:text-gray-100'} hover:bg-gray-50 dark:hover:bg-gray-600 rounded px-1 py-0.5 -mx-1 -my-0.5 transition-colors border-none bg-transparent`}
                       onClick={handleTitleClick}
+                      aria-label="Edit task title"
                     >
                       {task.title}
-                    </h4>
+                    </button>
                   )}
                 </div>
                 {isOverdue && (
@@ -326,7 +334,9 @@ export const KanbanCard = memo(function KanbanCard({
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
+                      aria-label="AI lightbulb"
                     >
+                      <title>AI lightbulb icon</title>
                       <path
                         strokeLinecap="round"
                         strokeLinejoin="round"
@@ -362,12 +372,18 @@ export const KanbanCard = memo(function KanbanCard({
 
         {/* Hover Popup */}
         {showHoverPopup && (
-          <div className="absolute left-full top-0 ml-2 z-50 w-80">
-            <div>
-              <div>
-                <h3>{task.title}</h3>
-                <p>{task.status}</p>
-                {task.description && <p>{task.description}</p>}
+          <div className="absolute left-full top-0 ml-2 z-40 w-80">
+            <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg shadow-lg p-4">
+              <div className="space-y-2">
+                <h3 className="font-medium text-gray-900 dark:text-gray-100">{task.title}</h3>
+                <Badge variant="outline" className="capitalize text-xs">
+                  {task.status.replace('_', ' ')}
+                </Badge>
+                {task.description && (
+                  <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-3">
+                    {task.description}
+                  </p>
+                )}
               </div>
             </div>
           </div>

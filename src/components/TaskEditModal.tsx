@@ -1,5 +1,5 @@
 import { useMutation, useQuery } from 'convex/react';
-import { useEffect, useState } from 'react';
+import { useEffect, useId, useState } from 'react';
 import { api } from '../../convex/_generated/api';
 import type { Id } from '../../convex/_generated/dataModel';
 import { Button } from './ui/Button';
@@ -28,6 +28,13 @@ const STATUS_OPTIONS = [
 ] as const;
 
 export function TaskEditModal({ taskId, isOpen, onClose }: TaskEditModalProps) {
+  const titleId = useId();
+  const descriptionId = useId();
+  const statusId = useId();
+  const categoryId = useId();
+  const deadlineId = useId();
+  const estimatedTimeId = useId();
+
   const task = useQuery(api.tasks.getTask, { taskId });
   const updateTask = useMutation(api.tasks.updateTask);
   const deleteTask = useMutation(api.tasks.deleteTask);
@@ -101,10 +108,19 @@ export function TaskEditModal({ taskId, isOpen, onClose }: TaskEditModalProps) {
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Edit Task</h2>
             <button
+              type="button"
               onClick={onClose}
               className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+              aria-label="Close modal"
             >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg
+                className="w-6 h-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+              >
+                <title>Close</title>
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -117,10 +133,14 @@ export function TaskEditModal({ taskId, isOpen, onClose }: TaskEditModalProps) {
 
           {/* Title */}
           <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <label
+              htmlFor={titleId}
+              className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+            >
               Title *
             </label>
             <input
+              id={titleId}
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
@@ -131,10 +151,14 @@ export function TaskEditModal({ taskId, isOpen, onClose }: TaskEditModalProps) {
 
           {/* Description */}
           <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <label
+              htmlFor={descriptionId}
+              className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+            >
               Description
             </label>
             <textarea
+              id={descriptionId}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               rows={4}
@@ -146,10 +170,14 @@ export function TaskEditModal({ taskId, isOpen, onClose }: TaskEditModalProps) {
           {/* Status and Priority */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label
+                htmlFor={statusId}
+                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+              >
                 Status
               </label>
               <select
+                id={statusId}
                 value={status}
                 onChange={(e) => setStatus(e.target.value as TaskStatus)}
                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
@@ -163,35 +191,39 @@ export function TaskEditModal({ taskId, isOpen, onClose }: TaskEditModalProps) {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Priority
-              </label>
-              <div className="grid grid-cols-2 gap-2">
-                {PRIORITY_OPTIONS.map((option) => (
-                  <button
-                    key={option.value}
-                    type="button"
-                    onClick={() => setPriority(option.value)}
-                    className={`px-3 py-2 rounded text-sm font-medium border transition-colors ${
-                      priority === option.value
-                        ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300'
-                        : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
-                    }`}
-                  >
-                    {option.label}
-                  </button>
-                ))}
-              </div>
+              <fieldset className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <legend>Priority</legend>
+                <div className="grid grid-cols-2 gap-2">
+                  {PRIORITY_OPTIONS.map((option) => (
+                    <button
+                      key={option.value}
+                      type="button"
+                      onClick={() => setPriority(option.value)}
+                      className={`px-3 py-2 rounded text-sm font-medium border transition-colors ${
+                        priority === option.value
+                          ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300'
+                          : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
+                      }`}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+              </fieldset>
             </div>
           </div>
 
           {/* Category and Deadline */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label
+                htmlFor={categoryId}
+                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+              >
                 Category
               </label>
               <input
+                id={categoryId}
                 type="text"
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
@@ -201,10 +233,14 @@ export function TaskEditModal({ taskId, isOpen, onClose }: TaskEditModalProps) {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label
+                htmlFor={deadlineId}
+                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+              >
                 Deadline
               </label>
               <input
+                id={deadlineId}
                 type="date"
                 value={deadline}
                 onChange={(e) => setDeadline(e.target.value)}
@@ -215,10 +251,14 @@ export function TaskEditModal({ taskId, isOpen, onClose }: TaskEditModalProps) {
 
           {/* Estimated Time */}
           <div className="mb-8">
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <label
+              htmlFor={estimatedTimeId}
+              className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+            >
               Estimated Time (minutes)
             </label>
             <input
+              id={estimatedTimeId}
               type="number"
               value={estimatedTime}
               onChange={(e) => setEstimatedTime(e.target.value)}

@@ -30,12 +30,13 @@ export const KanbanColumn = memo(function KanbanColumn({
   const [showAddForm, setShowAddForm] = useState(false);
 
   return (
-    <div
+    <section
       className={`bg-gray-50 dark:bg-gray-800 rounded-lg p-3 min-h-[500px] ${DRAG_STYLES.TRANSITION} ${
         isDraggedOver ? DRAG_STYLES.DROP_ZONE_ACTIVE : ''
       }`}
       onDragOver={onDragOver}
       onDrop={onDrop}
+      aria-label={`${title} task column`}
     >
       <div className="flex items-center justify-between mb-3 px-1">
         <div className="flex items-center gap-2">
@@ -52,7 +53,14 @@ export const KanbanColumn = memo(function KanbanColumn({
           className="text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 p-1 rounded transition-colors"
           title="Add task"
         >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg
+            className="w-4 h-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            aria-label="Add task icon"
+          >
+            <title>Add task</title>
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
           </svg>
         </button>
@@ -104,6 +112,6 @@ export const KanbanColumn = memo(function KanbanColumn({
           </>
         )}
       </div>
-    </div>
+    </section>
   );
 });

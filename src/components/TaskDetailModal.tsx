@@ -1,5 +1,5 @@
 import { useQuery } from 'convex/react';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { api } from '../../convex/_generated/api';
 import type { Id } from '../../convex/_generated/dataModel';
 import { TaskEditModal } from './TaskEditModal';
@@ -33,6 +33,13 @@ export function TaskDetailModal({ taskId, isOpen, onClose }: TaskDetailModalProp
     };
   }, [isOpen]);
 
+  const handleClose = useCallback(() => {
+    setIsAnimating(false);
+    setTimeout(() => {
+      onClose();
+    }, 200); // Match the animation duration
+  }, [onClose]);
+
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (modalRef.current && !modalRef.current.contains(event.target as Node)) {
@@ -56,13 +63,6 @@ export function TaskDetailModal({ taskId, isOpen, onClose }: TaskDetailModalProp
       document.removeEventListener('keydown', handleEscape);
     };
   }, [isOpen, handleClose]);
-
-  const handleClose = () => {
-    setIsAnimating(false);
-    setTimeout(() => {
-      onClose();
-    }, 200); // Match the animation duration
-  };
 
   const formatDate = (timestamp: number) => {
     return new Date(timestamp).toLocaleDateString('en-US', {
@@ -88,15 +88,11 @@ export function TaskDetailModal({ taskId, isOpen, onClose }: TaskDetailModalProp
 
   return (
     <>
-      <div
-        className={`fixed inset-0 bg-black transition-opacity duration-200 z-40 ${
-          isAnimating ? 'bg-opacity-50' : 'bg-opacity-0'
-        }`}
-      >
+      <div className={`fixed inset-0 bg-white/10 dark:bg-black/10 backdrop-blur-none z-50 transition-all duration-200 ${isAnimating ? 'opacity-100' : 'opacity-0'}`}>
         <div className="flex items-center justify-center min-h-full p-4">
           <div
             ref={modalRef}
-            className={`bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden transform transition-all duration-200 ${
+            className={`bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-600 max-w-2xl w-full max-h-[90vh] overflow-hidden transform transition-all duration-200 ${
               isAnimating ? 'scale-100 opacity-100' : 'scale-95 opacity-0'
             }`}
           >
@@ -117,7 +113,9 @@ export function TaskDetailModal({ taskId, isOpen, onClose }: TaskDetailModalProp
                           className="w-4 h-4 text-white m-1"
                           fill="currentColor"
                           viewBox="0 0 20 20"
+                          aria-label="Task completed"
                         >
+                          <title>Task completed checkmark</title>
                           <path
                             fillRule="evenodd"
                             d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
@@ -148,10 +146,18 @@ export function TaskDetailModal({ taskId, isOpen, onClose }: TaskDetailModalProp
                   </div>
                 </div>
                 <button
+                  type="button"
                   onClick={handleClose}
                   className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 p-1"
                 >
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg
+                    className="w-6 h-6"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    aria-label="Close modal"
+                  >
+                    <title>Close modal</title>
                     <path
                       strokeLinecap="round"
                       strokeLinejoin="round"
@@ -197,7 +203,11 @@ export function TaskDetailModal({ taskId, isOpen, onClose }: TaskDetailModalProp
                       Deadline
                     </h3>
                     <p
-                      className={`${isOverdue ? 'text-red-600 dark:text-red-400 font-medium' : 'text-gray-900 dark:text-gray-100'}`}
+                      className={`${
+                        isOverdue
+                          ? 'text-red-600 dark:text-red-400 font-medium'
+                          : 'text-gray-900 dark:text-gray-100'
+                      }`}
                     >
                       {formatDate(task.deadline)}
                     </p>
@@ -286,7 +296,14 @@ export function TaskDetailModal({ taskId, isOpen, onClose }: TaskDetailModalProp
                   variant="secondary"
                   className="flex items-center gap-2"
                 >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    aria-label="AI support"
+                  >
+                    <title>AI support lightbulb icon</title>
                     <path
                       strokeLinecap="round"
                       strokeLinejoin="round"

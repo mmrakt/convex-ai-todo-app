@@ -12,11 +12,17 @@ export function TaskList() {
           <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded mb-8"></div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 min-h-[600px]">
+              <div
+                key={`tasklist-column-${['todo', 'in_progress', 'completed', 'on_hold'][i] || i}`}
+                className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 min-h-[600px]"
+              >
                 <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded mb-4"></div>
                 <div className="space-y-3">
                   {Array.from({ length: 3 }).map((_, j) => (
-                    <div key={j} className="h-32 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                    <div
+                      key={`tasklist-skeleton-col${['todo', 'in_progress', 'completed', 'on_hold'][i] || i}-item${j}`}
+                      className="h-32 bg-gray-200 dark:bg-gray-700 rounded"
+                    ></div>
                   ))}
                 </div>
               </div>
