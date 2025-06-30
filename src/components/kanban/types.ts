@@ -2,15 +2,12 @@ import type { Doc, Id } from '../../../convex/_generated/dataModel';
 
 export interface KanbanBoardProps {
   tasks: Doc<'tasks'>[];
-  onEditTask: (taskId: Id<'tasks'>) => void;
-  onCreateTask: () => void;
 }
 
 export interface KanbanColumnProps {
   title: string;
   status: string;
   tasks: Doc<'tasks'>[];
-  onEditTask: (taskId: Id<'tasks'>) => void;
   onDragStart: (task: Doc<'tasks'>) => void;
   onDragEnd: () => void;
   onDrop: (status: string) => void;

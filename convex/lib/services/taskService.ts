@@ -14,11 +14,11 @@ import {
 
 export interface CreateTaskInput {
   title: string;
-  description: string;
+  description?: string;
   status?: TaskData["status"];
   priority?: TaskData["priority"];
   deadline?: number;
-  category: string;
+  category?: string;
   estimatedTime?: number;
   memo?: string;
 }
@@ -77,10 +77,10 @@ export class TaskService extends BaseService {
     await this.taskRepo.findByIdAndUserId(id, this.ctx.userId);
 
     // Validate input if provided
-    if (input.title !== undefined || input.description !== undefined) {
+    if (input.title !== undefined) {
       this.validateTaskInput({
-        title: input.title || "dummy",
-        description: input.description || "dummy",
+        title: input.title,
+        description: input.description,
       });
     }
 
@@ -138,22 +138,18 @@ export class TaskService extends BaseService {
 
   private validateTaskInput(input: {
     title: string;
-    description: string;
+    description?: string;
   }): void {
     if (!input.title || input.title.trim().length === 0) {
-      throw new ValidationError("タイトルは必須です");
+      throw new ValidationError("Title is required");
     }
 
     if (input.title.length > 200) {
-      throw new ValidationError("タイトルは200文字以内で入力してください");
+      throw new ValidationError("Title must be 200 characters or less");
     }
 
-    if (!input.description || input.description.trim().length === 0) {
-      throw new ValidationError("説明は必須です");
-    }
-
-    if (input.description.length > 2000) {
-      throw new ValidationError("説明は2000文字以内で入力してください");
+    if (input.description && input.description.length > 2000) {
+      throw new ValidationError("Description must be 2000 characters or less");
     }
   }
 }

@@ -14,7 +14,7 @@ export const supportTask = action({
   ): Promise<{ success: boolean; content?: string; error?: string }> => {
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) {
-      throw new Error("認証が必要です");
+      throw new Error("Authentication required");
     }
 
     try {
@@ -22,50 +22,56 @@ export const supportTask = action({
 
       const task = await ctx.runQuery(api.tasks.get, { id: args.taskId });
       if (!task) {
-        throw new Error("タスクが見つかりません");
+        throw new Error("Task not found");
       }
 
-      const prompt: string = `
-あなたは優秀なタスクサポートAIアシスタントです。
-以下のタスクについて、ユーザーがタスクを遂行するために役立つ情報を収集し、
-実行計画を立てて、マークダウン形式でサポート内容をまとめてください。
+      // Set status to generating immediately
+      await ctx.runMutation(api.tasks.updateAISupport, {
+        taskId: args.taskId,
+        status: "generating",
+      });
 
-タスク情報:
-- タイトル: ${task.title}
-- 説明: ${task.description}
-- カテゴリ: ${task.category}
-- 優先度: ${task.priority}
+      const prompt: string = `
+You are an excellent task support AI assistant.
+For the following task, please collect useful information to help the user accomplish the task,
+create an execution plan, and summarize the support content in markdown format.
+
+Task Information:
+- Title: ${task.title}
+- Description: ${task.description || 'No description provided'}
+- Category: ${task.category || 'No category'}
+- Priority: ${task.priority}
 ${
   task.deadline
-    ? `- 期限: ${new Date(task.deadline).toLocaleDateString("ja-JP")}`
+    ? `- Deadline: ${new Date(task.deadline).toLocaleDateString("en-US")}`
     : ""
 }
 
-以下の観点から包括的なサポートを提供してください：
+Please provide comprehensive support from the following perspectives:
 
-1. **タスクの背景と目的の整理**
-   - なぜこのタスクが重要なのか
-   - 期待される成果
+1. **Background and Purpose Analysis**
+   - Why this task is important
+   - Expected outcomes
 
-2. **実行計画の策定**
-   - 具体的なステップ
-   - 推奨される順序
-   - 各ステップの所要時間目安
+2. **Execution Plan Development**
+   - Specific steps
+   - Recommended order
+   - Estimated time for each step
 
-3. **関連情報とリソース**
-   - 参考になる情報源
-   - 必要なツールやサービス
-   - 学習リソース（該当する場合）
+3. **Related Information and Resources**
+   - Useful information sources
+   - Required tools or services
+   - Learning resources (if applicable)
 
-4. **実行時の注意点**
-   - よくある落とし穴
-   - 成功のためのコツ
+4. **Implementation Notes**
+   - Common pitfalls
+   - Tips for success
 
-5. **次のアクション**
-   - 最初に取り組むべきこと
-   - チェックポイント
+5. **Next Actions**
+   - First thing to focus on
+   - Checkpoints
 
-マークダウン形式で、読みやすく構造化された形式で出力してください。
+Please output in markdown format with a readable and well-structured layout.
 `;
 
       let supportContent: string;
@@ -97,40 +103,40 @@ ${
         supportContent = data.message.content;
       } catch (ollamaError) {
         console.warn(
-          "Ollama実行エラー、フォールバック応答を使用:",
+          "Ollama execution error, using fallback response:",
           ollamaError
         );
         // フォールバック: 静的なテンプレート応答
         supportContent = `
-# タスクサポート: ${task.title}
+# Task Support: ${task.title}
 
-## タスクの背景と目的の整理
-このタスクは「${task.title}」として設定されており、以下の説明があります：
-${task.description || "説明が提供されていません"}
+## Background and Purpose Analysis
+This task is set as "${task.title}" with the following description:
+${task.description || "No description provided"}
 
-## 実行計画の策定
-1. **情報収集**: タスクに関連する情報やリソースを集める
-2. **計画立案**: 具体的なステップに分解する
-3. **実行**: 計画に従って段階的に進める
-4. **確認**: 各ステップの完了を確認する
+## Execution Plan Development
+1. **Information Gathering**: Collect information and resources related to the task
+2. **Planning**: Break down into specific steps
+3. **Execution**: Proceed step by step according to the plan
+4. **Verification**: Confirm completion of each step
 
-## 関連情報とリソース
-- カテゴリ: ${task.category}
-- 優先度: ${task.priority}
+## Related Information and Resources
+- Category: ${task.category || 'No category'}
+- Priority: ${task.priority}
 ${
   task.deadline
-    ? `- 期限: ${new Date(task.deadline).toLocaleDateString("ja-JP")}`
+    ? `- Deadline: ${new Date(task.deadline).toLocaleDateString("en-US")}`
     : ""
 }
 
-## 実行時の注意点
-- 優先度が${task.priority}なので、適切なリソース配分を心がけてください
-- 期限がある場合は、余裕を持ったスケジュールを組みましょう
+## Implementation Notes
+- Since the priority is ${task.priority}, please allocate resources appropriately
+- If there's a deadline, plan with sufficient buffer time
 
-## 次のアクション
-まずは情報収集から始めて、具体的な計画を立てることをお勧めします。
+## Next Actions
+We recommend starting with information gathering and then creating a specific plan.
 
-*注意: この応答はOllamaが利用できない場合のフォールバック応答です。*
+*Note: This is a fallback response when Ollama is not available.*
         `;
       }
 
@@ -138,6 +144,13 @@ ${
       const cost = 0;
       const totalTokens =
         estimateTokens(prompt) + estimateTokens(supportContent);
+
+      // Update task with completed AI support
+      await ctx.runMutation(api.tasks.updateAISupport, {
+        taskId: args.taskId,
+        status: "completed",
+        content: supportContent,
+      });
 
       await ctx.runMutation(api.tasks.updateMemo, {
         id: args.taskId,
@@ -157,13 +170,20 @@ ${
 
       return { success: true, content: supportContent };
     } catch (error) {
-      console.error("タスクサポートエラー:", error);
+      console.error("Task support error:", error);
+      
+      // Update status to error
+      await ctx.runMutation(api.tasks.updateAISupport, {
+        taskId: args.taskId,
+        status: "error",
+      });
+      
       return {
         success: false,
         error:
           error instanceof Error
             ? error.message
-            : "タスクサポートの実行中にエラーが発生しました",
+            : "An error occurred while executing task support",
       };
     }
   },

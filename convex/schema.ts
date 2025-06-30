@@ -24,7 +24,7 @@ export default defineSchema({
   tasks: defineTable({
     userId: v.string(), // Convex AuthのユーザーIDを使用
     title: v.string(),
-    description: v.string(),
+    description: v.optional(v.string()),
     status: v.union(
       v.literal("todo"),
       v.literal("in_progress"), 
@@ -38,10 +38,17 @@ export default defineSchema({
       v.literal("urgent")
     ),
     deadline: v.optional(v.number()),
-    category: v.string(),
+    category: v.optional(v.string()),
     estimatedTime: v.optional(v.number()),
     actualTime: v.optional(v.number()),
     memo: v.optional(v.string()),
+    aiSupportStatus: v.optional(v.union(
+      v.literal("generating"),
+      v.literal("completed"),
+      v.literal("error")
+    )),
+    aiSupportContent: v.optional(v.string()),
+    aiSupportGeneratedAt: v.optional(v.number()),
     createdAt: v.number(),
     updatedAt: v.number(),
   })

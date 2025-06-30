@@ -27,7 +27,7 @@ export const decomposeTask = action({
       
       // Check rate limit
       if (!rateLimiter.canMakeRequest(apiConfig.aiModel)) {
-        throw new Error("レート制限に達しました。しばらく時間を置いてから再試行してください。");
+        throw new Error("Rate limit reached. Please try again later.");
       }
       
       // Create prompt
@@ -36,7 +36,7 @@ export const decomposeTask = action({
       // Make AI request
       const request: AIRequest = {
         prompt,
-        systemPrompt: "あなたはタスク分解の専門家です。与えられたタスクを実行可能な小さなステップに分解してください。",
+        systemPrompt: "You are a task decomposition expert. Please break down the given task into small, executable steps.",
         temperature: 0.7,
         maxTokens: 2000,
       };
@@ -56,36 +56,36 @@ export const decomposeTask = action({
       };
       
     } catch (error) {
-      console.error("タスク分解エラー:", error);
+      console.error("Task decomposition error:", error);
       throw handleError(error);
     }
   },
 });
 
-// プロンプト作成
+// Create prompt
 const createDecompositionPrompt = (
   title: string,
   description: string,
   skills: string[]
 ): string => {
-  return `以下のタスクを実行可能な小さなステップに分解してください：
+  return `Please break down the following task into small, executable steps:
 
-タイトル: ${title}
-説明: ${description}
-ユーザーのスキル: ${skills.length > 0 ? skills.join(", ") : "一般的なスキルレベル"}
+Title: ${title}
+Description: ${description}
+User Skills: ${skills.length > 0 ? skills.join(", ") : "General skill level"}
 
-要件:
-- 各サブタスクは具体的で実行可能であること
-- 論理的な順序で並べること
-- 推定所要時間（分）を含めること
-- 最大10個のサブタスクに分解すること
+Requirements:
+- Each subtask should be specific and executable
+- Arrange in logical order
+- Include estimated time (minutes)
+- Break down into maximum 10 subtasks
 
-以下のJSON形式で回答してください:
+Please respond in the following JSON format:
 {
   "subtasks": [
     {
-      "title": "サブタスクのタイトル",
-      "description": "詳細な説明",
+      "title": "Subtask title",
+      "description": "Detailed description",
       "estimatedTime": 30,
       "order": 1,
       "dependencies": []
@@ -95,7 +95,7 @@ const createDecompositionPrompt = (
 };
 
 
-// 分解結果のパース
+// Parse decomposition result
 const parseDecompositionResult = (content: string): Array<{
   title: string;
   description: string;
@@ -107,17 +107,17 @@ const parseDecompositionResult = (content: string): Array<{
     // JSON部分を抽出
     const jsonMatch = content.match(/\{[\s\S]*\}/);
     if (!jsonMatch) {
-      throw new Error("JSON形式の応答が見つかりません");
+      throw new Error("JSON format response not found");
     }
     
     const parsed = JSON.parse(jsonMatch[0]);
     
     if (!parsed.subtasks || !Array.isArray(parsed.subtasks)) {
-      throw new Error("subtasksが配列ではありません");
+      throw new Error("subtasks is not an array");
     }
     
     return parsed.subtasks.map((task: any, index: number) => ({
-      title: task.title || `サブタスク ${index + 1}`,
+      title: task.title || `Subtask ${index + 1}`,
       description: task.description || "",
       estimatedTime: Number(task.estimatedTime) || 30,
       order: Number(task.order) || index + 1,
@@ -125,13 +125,13 @@ const parseDecompositionResult = (content: string): Array<{
     }));
     
   } catch (error) {
-    console.error("分解結果のパースエラー:", error);
+    console.error("Decomposition result parsing error:", error);
     
-    // フォールバック: 元のタスクをそのまま返す
+    // Fallback: return original task as is
     return [
       {
-        title: "タスクの実行",
-        description: "AIによる分解に失敗したため、元のタスクをそのまま実行してください",
+        title: "Execute task",
+        description: "AI decomposition failed, please execute the original task as is",
         estimatedTime: 60,
         order: 1,
         dependencies: [],

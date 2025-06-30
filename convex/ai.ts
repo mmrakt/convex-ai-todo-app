@@ -20,12 +20,12 @@ export const logAIContent = mutation({
   handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx);
     if (!userId) {
-      throw new Error("認証が必要です");
+      throw new Error("Authentication required");
     }
 
     const task = await ctx.db.get(args.taskId);
     if (!task || task.userId !== userId) {
-      throw new Error("タスクが見つからないか、権限がありません");
+      throw new Error("Task not found or insufficient permissions");
     }
 
     return await ctx.db.insert("aiContents", {

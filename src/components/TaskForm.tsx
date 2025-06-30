@@ -15,10 +15,10 @@ import { api } from '../../convex/_generated/api';
 import type { Id } from '../../convex/_generated/dataModel';
 
 const PRIORITY_OPTIONS = [
-  { value: 'low', label: '低' },
-  { value: 'medium', label: '中' },
-  { value: 'high', label: '高' },
-  { value: 'urgent', label: '緊急' },
+  { value: 'low', label: 'Low' },
+  { value: 'medium', label: 'Medium' },
+  { value: 'high', label: 'High' },
+  { value: 'urgent', label: 'Urgent' },
 ];
 
 interface TaskFormProps {
@@ -58,11 +58,11 @@ export function TaskForm({ taskId, onSuccess, onCancel }: TaskFormProps) {
     const newErrors: Record<string, string> = {};
 
     if (!title.trim()) {
-      newErrors.title = 'タイトルは必須です';
+      newErrors.title = 'Title is required';
     }
 
     if (estimatedTime && (Number.isNaN(Number(estimatedTime)) || Number(estimatedTime) < 0)) {
-      newErrors.estimatedTime = '見積時間は正の数値で入力してください';
+      newErrors.estimatedTime = 'Estimated time must be a positive number';
     }
 
     setErrors(newErrors);
@@ -99,8 +99,8 @@ export function TaskForm({ taskId, onSuccess, onCancel }: TaskFormProps) {
 
       onSuccess?.();
     } catch (error) {
-      console.error('タスク保存エラー:', error);
-      setErrors({ submit: 'タスクの保存に失敗しました' });
+      console.error('Task save error:', error);
+      setErrors({ submit: 'Failed to save task' });
     } finally {
       setIsSubmitting(false);
     }
@@ -120,7 +120,7 @@ export function TaskForm({ taskId, onSuccess, onCancel }: TaskFormProps) {
     <div className="p-6">
       <Card variant="elevated">
         <CardHeader>
-          <CardTitle>{isEditing ? 'タスクを編集' : '新しいタスクを作成'}</CardTitle>
+          <CardTitle>{isEditing ? 'Edit Task' : 'Create New Task'}</CardTitle>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
@@ -129,7 +129,7 @@ export function TaskForm({ taskId, onSuccess, onCancel }: TaskFormProps) {
                 htmlFor="title"
                 className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
               >
-                タイトル *
+                Title *
               </label>
               <input
                 id="title"
@@ -141,7 +141,7 @@ export function TaskForm({ taskId, onSuccess, onCancel }: TaskFormProps) {
                     ? 'border-red-300 focus:border-red-500 focus:ring-red-500 dark:border-red-700'
                     : 'border-gray-300 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:focus:border-blue-400'
                 }`}
-                placeholder="タスクのタイトルを入力"
+                placeholder="Enter task title"
                 maxLength={200}
               />
               {errors.title && (
@@ -154,14 +154,14 @@ export function TaskForm({ taskId, onSuccess, onCancel }: TaskFormProps) {
                 htmlFor="description"
                 className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
               >
-                説明
+                Description
               </label>
               <textarea
                 id="description"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 className="block w-full rounded-md border border-gray-300 dark:border-gray-600 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:border-blue-400 focus:ring-offset-2 focus:outline-none p-3 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
-                placeholder="タスクの詳細説明を入力（任意）"
+                placeholder="Enter task description (optional)"
                 rows={4}
                 maxLength={1000}
               />
@@ -173,7 +173,7 @@ export function TaskForm({ taskId, onSuccess, onCancel }: TaskFormProps) {
                   htmlFor="priority"
                   className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
                 >
-                  優先度
+                  Priority
                 </label>
                 <Select
                   options={PRIORITY_OPTIONS}
@@ -187,7 +187,7 @@ export function TaskForm({ taskId, onSuccess, onCancel }: TaskFormProps) {
                   htmlFor="category"
                   className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
                 >
-                  カテゴリー
+                  Category
                 </label>
                 <input
                   id="category"
@@ -195,7 +195,7 @@ export function TaskForm({ taskId, onSuccess, onCancel }: TaskFormProps) {
                   value={category}
                   onChange={(e) => setCategory(e.target.value)}
                   className="block w-full rounded-md border border-gray-300 dark:border-gray-600 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:border-blue-400 focus:ring-offset-2 focus:outline-none h-10 px-3 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
-                  placeholder="例: 仕事、プライベート"
+                  placeholder="e.g., Work, Personal"
                   maxLength={50}
                 />
               </div>
@@ -203,7 +203,7 @@ export function TaskForm({ taskId, onSuccess, onCancel }: TaskFormProps) {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <DatePicker
-                label="期限"
+                label="Deadline"
                 value={deadline}
                 onChange={(e) => setDeadline(e.target.value)}
               />
@@ -213,7 +213,7 @@ export function TaskForm({ taskId, onSuccess, onCancel }: TaskFormProps) {
                   htmlFor="estimatedTime"
                   className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
                 >
-                  見積時間（分）
+                  Estimated Time (minutes)
                 </label>
                 <input
                   id="estimatedTime"
@@ -245,7 +245,7 @@ export function TaskForm({ taskId, onSuccess, onCancel }: TaskFormProps) {
 
             <div className="flex flex-col sm:flex-row gap-4 pt-4">
               <Button type="submit" isLoading={isSubmitting} className="flex-1">
-                {isEditing ? 'タスクを更新' : 'タスクを作成'}
+                {isEditing ? 'Update Task' : 'Create Task'}
               </Button>
 
               {!isEditing && (
@@ -255,13 +255,13 @@ export function TaskForm({ taskId, onSuccess, onCancel }: TaskFormProps) {
                   onClick={handleReset}
                   disabled={isSubmitting}
                 >
-                  リセット
+                  Reset
                 </Button>
               )}
 
               {onCancel && (
                 <Button type="button" variant="ghost" onClick={onCancel} disabled={isSubmitting}>
-                  キャンセル
+                  Cancel
                 </Button>
               )}
             </div>

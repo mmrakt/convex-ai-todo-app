@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { api } from '../../convex/_generated/api';
 import type { Id } from '../../convex/_generated/dataModel';
 
-// タスク分解フックの返り値型
+// Task decomposition hook return type
 type TaskDecompositionResult = {
   subtasks: Array<{
     title: string;
@@ -19,7 +19,7 @@ type TaskDecompositionResult = {
   };
 };
 
-// リサーチフックの返り値型
+// Research hook return type
 type ResearchResult = {
   topic: string;
   summary: string;
@@ -36,7 +36,7 @@ type ResearchResult = {
   };
 };
 
-// タスク分解フック
+// Task decomposition hook
 export const useTaskDecomposition = () => {
   const decomposeTaskAction = useAction(api.ai.taskDecomposer.decomposeTask);
   const [isLoading, setIsLoading] = useState(false);
@@ -60,9 +60,9 @@ export const useTaskDecomposition = () => {
       return result;
     } catch (err) {
       const errorMessage =
-        err instanceof Error ? err.message : 'タスクの分解中にエラーが発生しました';
+        err instanceof Error ? err.message : 'An error occurred while decomposing the task';
       setError(errorMessage);
-      console.error('タスク分解エラー:', err);
+      console.error('Task decomposition error:', err);
       return null;
     } finally {
       setIsLoading(false);
@@ -77,7 +77,7 @@ export const useTaskDecomposition = () => {
   };
 };
 
-// リサーチフック
+// Research hook
 export const useResearch = () => {
   const researchTopicAction = useAction(api.ai.researchAgent.researchTopic);
   const [isLoading, setIsLoading] = useState(false);
@@ -100,9 +100,9 @@ export const useResearch = () => {
 
       return result;
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'リサーチ中にエラーが発生しました';
+      const errorMessage = err instanceof Error ? err.message : 'An error occurred during research';
       setError(errorMessage);
-      console.error('リサーチエラー:', err);
+      console.error('Research error:', err);
       return null;
     } finally {
       setIsLoading(false);
@@ -117,7 +117,7 @@ export const useResearch = () => {
   };
 };
 
-// AI機能の利用状況を管理するフック
+// Hook to manage AI feature usage
 export const useAIUsage = () => {
   const [totalCost, setTotalCost] = useState(0);
   const [totalTokens, setTotalTokens] = useState(0);
@@ -144,13 +144,13 @@ export const useAIUsage = () => {
   };
 };
 
-// 統合AI操作フック
+// Integrated AI operations hook
 export const useAIOperations = () => {
   const { decomposeTask, isLoading: isDecomposing, error: decomposeError } = useTaskDecomposition();
   const { research, isLoading: isResearching, error: researchError } = useResearch();
   const { trackUsage, ...usage } = useAIUsage();
 
-  // タスクを分解してサブタスクを作成
+  // Decompose task and create subtasks
   const decomposeAndCreateSubtasks = async (
     taskTitle: string,
     taskDescription: string,
@@ -166,7 +166,7 @@ export const useAIOperations = () => {
     return null;
   };
 
-  // トピックをリサーチして結果を取得
+  // Research topic and get results
   const researchAndTrack = async (
     topic: string,
     taskId: Id<'tasks'>,
@@ -183,32 +183,32 @@ export const useAIOperations = () => {
   };
 
   return {
-    // 操作
+    // Operations
     decomposeAndCreateSubtasks,
     researchAndTrack,
 
-    // 状態
+    // State
     isDecomposing,
     isResearching,
     isLoading: isDecomposing || isResearching,
 
-    // エラー
+    // Errors
     decomposeError,
     researchError,
     hasError: !!(decomposeError || researchError),
 
-    // 使用状況
+    // Usage stats
     usage,
   };
 };
 
-// AI機能の可用性チェック
+// AI feature availability check
 export const useAIAvailability = () => {
   const checkAvailability = () => {
-    // 環境変数の存在をクライアントサイドで直接チェックはできない
-    // 実際の実装では、サーバーサイドのエンドポイントから取得する
+    // Cannot directly check environment variables on client side
+    // In actual implementation, fetch from server-side endpoint
     return {
-      isAvailable: true, // 初期値
+      isAvailable: true, // Initial value
       supportedModels: ['gpt-3.5-turbo', 'gpt-4', 'claude-3-sonnet'],
       limitations: {
         maxTokens: 4000,

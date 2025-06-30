@@ -30,7 +30,7 @@ export function Dashboard() {
     );
   }
 
-  const today = new Date().toLocaleDateString('ja-JP', {
+  const today = new Date().toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
@@ -42,23 +42,26 @@ export function Dashboard() {
   return (
     <div className="p-6 space-y-6">
       <div className="space-y-2">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
-          おはようございます！
-        </h1>
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Good morning!</h1>
         <p className="text-gray-600 dark:text-gray-400">{today}</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <StatsCard title="全タスク" value={stats.total} icon="📝" color="bg-blue-500" />
-        <StatsCard title="進行中" value={stats.inProgress} icon="⚡" color="bg-yellow-500" />
-        <StatsCard title="完了" value={stats.completed} icon="✅" color="bg-green-500" />
-        <StatsCard title="完了率" value={`${completionRate}%`} icon="📊" color="bg-purple-500" />
+        <StatsCard title="All Tasks" value={stats.total} icon="📝" color="bg-blue-500" />
+        <StatsCard title="In Progress" value={stats.inProgress} icon="⚡" color="bg-yellow-500" />
+        <StatsCard title="Completed" value={stats.completed} icon="✅" color="bg-green-500" />
+        <StatsCard
+          title="Completion Rate"
+          value={`${completionRate}%`}
+          icon="📊"
+          color="bg-purple-500"
+        />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card variant="elevated">
           <CardHeader>
-            <CardTitle>優先度別サマリー</CardTitle>
+            <CardTitle>Priority Summary</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
@@ -72,13 +75,11 @@ export function Dashboard() {
 
         <Card variant="elevated">
           <CardHeader>
-            <CardTitle>最近のタスク</CardTitle>
+            <CardTitle>Recent Tasks</CardTitle>
           </CardHeader>
           <CardContent>
             {recentTasks.length === 0 ? (
-              <p className="text-gray-500 dark:text-gray-400 text-center py-4">
-                まだタスクがありません
-              </p>
+              <p className="text-gray-500 dark:text-gray-400 text-center py-4">No tasks yet</p>
             ) : (
               <div className="space-y-3">
                 {recentTasks.slice(0, 5).map((task) => (
@@ -105,10 +106,10 @@ export function Dashboard() {
 
       <div className="flex flex-col sm:flex-row gap-4">
         <Button size="lg" className="flex-1">
-          新しいタスクを作成
+          Create New Task
         </Button>
         <Button variant="secondary" size="lg" className="flex-1">
-          タスク一覧を表示
+          View All Tasks
         </Button>
       </div>
     </div>
@@ -152,9 +153,9 @@ function PriorityItem({ priority, count }: PriorityItemProps) {
         <Badge variant={variant} size="sm">
           {children}
         </Badge>
-        <span className="text-sm text-gray-600 dark:text-gray-400">優先度</span>
+        <span className="text-sm text-gray-600 dark:text-gray-400">Priority</span>
       </div>
-      <span className="text-sm font-medium text-gray-900 dark:text-gray-100">{count}件</span>
+      <span className="text-sm font-medium text-gray-900 dark:text-gray-100">{count} tasks</span>
     </div>
   );
 }

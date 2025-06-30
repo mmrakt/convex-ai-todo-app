@@ -6,11 +6,11 @@ export interface TaskData {
   _id: Id<"tasks">;
   userId: string;
   title: string;
-  description: string;
+  description?: string;
   status: "todo" | "in_progress" | "completed" | "on_hold";
   priority: "low" | "medium" | "high" | "urgent";
   deadline?: number;
-  category: string;
+  category?: string;
   estimatedTime?: number;
   actualTime?: number;
   memo?: string;
@@ -35,7 +35,7 @@ export class TaskRepository {
   async findByIdAndUserId(id: Id<"tasks">, userId: string): Promise<TaskData> {
     const task = await this.findById(id);
     if (!task) {
-      throw new NotFoundError("タスク");
+      throw new NotFoundError("Task");
     }
     if (task.userId !== userId) {
       throw new AuthorizationError();
@@ -58,11 +58,14 @@ export class TaskRepository {
 
     const tasks = await query.collect();
 
+    // Sort tasks by createdAt in ascending order (oldest first, newest at bottom)
+    const sortedTasks = tasks.sort((a, b) => a.createdAt - b.createdAt);
+
     if (filter.limit) {
-      return tasks.slice(0, filter.limit);
+      return sortedTasks.slice(0, filter.limit);
     }
 
-    return tasks;
+    return sortedTasks;
   }
 
   async create(

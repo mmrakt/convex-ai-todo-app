@@ -39,30 +39,30 @@ Badge.displayName = 'Badge';
 export const getPriorityBadgeProps = (priority: string) => {
   switch (priority) {
     case 'urgent':
-      return { variant: 'destructive' as const, children: '緊急' };
+      return { variant: 'destructive' as const, children: 'Urgent' };
     case 'high':
-      return { variant: 'warning' as const, children: '高' };
+      return { variant: 'warning' as const, children: 'High' };
     case 'medium':
-      return { variant: 'default' as const, children: '中' };
+      return { variant: 'default' as const, children: 'Medium' };
     case 'low':
-      return { variant: 'secondary' as const, children: '低' };
+      return { variant: 'secondary' as const, children: 'Low' };
     default:
-      return { variant: 'secondary' as const, children: '不明' };
+      return { variant: 'secondary' as const, children: 'Unknown' };
   }
 };
 
 export const getStatusBadgeProps = (status: string) => {
   switch (status) {
     case 'completed':
-      return { variant: 'success' as const, children: '完了' };
+      return { variant: 'success' as const, children: 'Completed' };
     case 'in_progress':
-      return { variant: 'default' as const, children: '進行中' };
+      return { variant: 'default' as const, children: 'In Progress' };
     case 'todo':
-      return { variant: 'secondary' as const, children: '未着手' };
+      return { variant: 'secondary' as const, children: 'To Do' };
     case 'on_hold':
-      return { variant: 'warning' as const, children: '保留' };
+      return { variant: 'warning' as const, children: 'On Hold' };
     default:
-      return { variant: 'secondary' as const, children: '不明' };
+      return { variant: 'secondary' as const, children: 'Unknown' };
   }
 };
 

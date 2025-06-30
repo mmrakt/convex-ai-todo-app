@@ -57,19 +57,44 @@ export const get = query({
   },
 });
 
+// Query: Get single task by ID (alias for compatibility)
+export const getTask = query({
+  args: { taskId: v.id("tasks") },
+  handler: async (ctx, args) => {
+    try {
+      const userId = await getAuthUserId(ctx);
+      if (!userId) {
+        return null;
+      }
+      const service = new TaskService({ ...ctx, userId });
+      return await service.getTask(args.taskId);
+    } catch (error) {
+      return null;
+    }
+  },
+});
+
 // Mutation: Create new task
 export const createTask = mutation({
   args: {
     title: v.string(),
-    description: v.string(),
-    priority: v.union(
+    description: v.optional(v.string()),
+    status: v.optional(
+      v.union(
+        v.literal("todo"),
+        v.literal("in_progress"),
+        v.literal("completed"),
+        v.literal("on_hold")
+      )
+    ),
+    priority: v.optional(v.union(
       v.literal("low"),
       v.literal("medium"),
       v.literal("high"),
       v.literal("urgent")
-    ),
+    )),
     deadline: v.optional(v.number()),
-    category: v.string(),
+    category: v.optional(v.string()),
     estimatedTime: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
@@ -149,7 +174,7 @@ export const updateTaskStatus = mutation({
       const task = await service.getTask(args.taskId);
 
       if (!task) {
-        throw new Error("タスクが見つかりません");
+        throw new Error("Task not found");
       }
 
       const updateData: any = { status: args.status };
@@ -229,6 +254,41 @@ export const updateMemo = mutation({
       }
       const service = new TaskService({ ...ctx, userId });
       await service.updateTask(args.id, { memo: args.memo });
+    } catch (error) {
+      throw handleError(error);
+    }
+  },
+});
+
+// Mutation: Update AI support status
+export const updateAISupport = mutation({
+  args: {
+    taskId: v.id("tasks"),
+    status: v.union(
+      v.literal("generating"),
+      v.literal("completed"),
+      v.literal("error")
+    ),
+    content: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    try {
+      const userId = await getAuthUserId(ctx);
+      if (!userId) {
+        throw new AuthenticationError();
+      }
+      const service = new TaskService({ ...ctx, userId });
+      
+      const updateData: any = {
+        aiSupportStatus: args.status,
+      };
+      
+      if (args.content) {
+        updateData.aiSupportContent = args.content;
+        updateData.aiSupportGeneratedAt = Date.now();
+      }
+      
+      await service.updateTask(args.taskId, updateData);
     } catch (error) {
       throw handleError(error);
     }

@@ -1,28 +1,28 @@
 export const KANBAN_COLUMNS = [
   {
     id: 'todo',
-    title: '未着手',
+    title: 'To Do',
     status: 'todo' as const,
     color: 'border-t-gray-400',
     bgColor: 'bg-gray-50 dark:bg-gray-800',
   },
   {
     id: 'in_progress',
-    title: '進行中',
+    title: 'In Progress',
     status: 'in_progress' as const,
     color: 'border-t-blue-500',
     bgColor: 'bg-blue-50 dark:bg-blue-900/20',
   },
   {
     id: 'completed',
-    title: '完了',
+    title: 'Completed',
     status: 'completed' as const,
     color: 'border-t-green-500',
     bgColor: 'bg-green-50 dark:bg-green-900/20',
   },
   {
     id: 'on_hold',
-    title: '保留',
+    title: 'On Hold',
     status: 'on_hold' as const,
     color: 'border-t-yellow-500',
     bgColor: 'bg-yellow-50 dark:bg-yellow-900/20',

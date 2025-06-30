@@ -2,49 +2,20 @@
 
 import { useAuthActions } from '@convex-dev/auth/react';
 import { Authenticated, Unauthenticated, useConvexAuth } from 'convex/react';
-import { useState } from 'react';
-import { TaskForm } from '@/components/TaskForm';
+import { useId } from 'react';
 import { TaskList } from '@/components/TaskList';
 import { Button } from '@/components/ui';
-import type { Id } from '../convex/_generated/dataModel';
-
-type View = 'tasks' | 'edit';
 
 export default function App() {
-  const [currentView, setCurrentView] = useState<View>('tasks');
-  const [editingTaskId, setEditingTaskId] = useState<Id<'tasks'> | undefined>();
-
-  const handleEditTask = (taskId: Id<'tasks'>) => {
-    setEditingTaskId(taskId);
-    setCurrentView('edit');
-  };
-
-  const handleCreateTask = () => {
-    setEditingTaskId(undefined);
-    setCurrentView('edit');
-  };
-
-  const handleTaskSuccess = () => {
-    setCurrentView('tasks');
-    setEditingTaskId(undefined);
-  };
-
-  const handleCancel = () => {
-    setCurrentView('tasks');
-    setEditingTaskId(undefined);
-  };
-
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <header className="sticky top-0 z-10 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-8">
-              <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">AI Todo アプリ</h1>
+              <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">AI Todo App</h1>
               <nav className="hidden md:flex space-x-4">
-                <NavButton active={currentView === 'tasks'} onClick={() => setCurrentView('tasks')}>
-                  タスク一覧
-                </NavButton>
+                <span className="text-gray-600 dark:text-gray-400">Task Board</span>
               </nav>
             </div>
             <SignOutButton />
@@ -54,16 +25,7 @@ export default function App() {
 
       <main>
         <Authenticated>
-          {currentView === 'tasks' && (
-            <TaskList onEditTask={handleEditTask} onCreateTask={handleCreateTask} />
-          )}
-          {currentView === 'edit' && (
-            <TaskForm
-              taskId={editingTaskId}
-              onSuccess={handleTaskSuccess}
-              onCancel={handleCancel}
-            />
-          )}
+          <TaskList />
         </Authenticated>
         <Unauthenticated>
           <SignInForm />
@@ -79,9 +41,10 @@ interface NavButtonProps {
   children: React.ReactNode;
 }
 
-function NavButton({ active, onClick, children }: NavButtonProps) {
+function _NavButton({ active, onClick, children }: NavButtonProps) {
   return (
     <button
+      type="button"
       onClick={onClick}
       className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
         active
@@ -101,7 +64,7 @@ function SignOutButton() {
     <>
       {isAuthenticated && (
         <Button variant="secondary" size="sm" onClick={() => void signOut()}>
-          ログアウト
+          Logout
         </Button>
       )}
     </>
@@ -113,6 +76,8 @@ function SignInForm() {
   const [flow, setFlow] = useState<'signIn' | 'signUp'>('signIn');
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const emailId = useId();
+  const passwordId = useId();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -123,8 +88,8 @@ function SignInForm() {
       const formData = new FormData(e.target as HTMLFormElement);
       formData.set('flow', flow);
       await signIn('password', formData);
-    } catch (error: any) {
-      setError(error.message || 'ログインに失敗しました');
+    } catch (error: unknown) {
+      setError(error instanceof Error ? error.message : 'Login failed');
     } finally {
       setIsLoading(false);
     }
@@ -135,10 +100,10 @@ function SignInForm() {
       <div className="max-w-md w-full space-y-8">
         <div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900 dark:text-gray-100">
-            AI Todo アプリ
+            AI Todo App
           </h2>
           <p className="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
-            {flow === 'signIn' ? 'アカウントにサインイン' : '新しいアカウントを作成'}
+            {flow === 'signIn' ? 'Sign in to your account' : 'Create new account'}
           </p>
         </div>
 
@@ -146,13 +111,13 @@ function SignInForm() {
           <div className="space-y-4">
             <div>
               <label
-                htmlFor="email"
+                htmlFor={emailId}
                 className="block text-sm font-medium text-gray-700 dark:text-gray-300"
               >
-                メールアドレス
+                Email
               </label>
               <input
-                id="email"
+                id={emailId}
                 name="email"
                 type="email"
                 required
@@ -163,18 +128,18 @@ function SignInForm() {
 
             <div>
               <label
-                htmlFor="password"
+                htmlFor={passwordId}
                 className="block text-sm font-medium text-gray-700 dark:text-gray-300"
               >
-                パスワード
+                Password
               </label>
               <input
-                id="password"
+                id={passwordId}
                 name="password"
                 type="password"
                 required
                 className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
-                placeholder="パスワード"
+                placeholder="Password"
               />
             </div>
           </div>
@@ -187,7 +152,7 @@ function SignInForm() {
 
           <div>
             <Button type="submit" isLoading={isLoading} className="w-full" size="lg">
-              {flow === 'signIn' ? 'サインイン' : 'アカウント作成'}
+              {flow === 'signIn' ? 'Sign In' : 'Create Account'}
             </Button>
           </div>
 
@@ -197,9 +162,7 @@ function SignInForm() {
               className="text-sm text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300"
               onClick={() => setFlow(flow === 'signIn' ? 'signUp' : 'signIn')}
             >
-              {flow === 'signIn'
-                ? 'アカウントをお持ちでない方はこちら'
-                : '既にアカウントをお持ちの方はこちら'}
+              {flow === 'signIn' ? "Don't have an account?" : 'Already have an account?'}
             </button>
           </div>
         </form>

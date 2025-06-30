@@ -48,7 +48,7 @@ export function useDragAndDrop(): UseDragAndDropReturn {
           status: newStatus as TaskStatus,
         });
       } catch (error) {
-        handleError(error, 'タスクのステータス更新に失敗しました');
+        handleError(error, 'Failed to update task status');
       } finally {
         setIsUpdating(false);
         setDraggedTask(null);

@@ -1,14 +1,8 @@
 import { useQuery } from 'convex/react';
 import { api } from '../../convex/_generated/api';
-import type { Id } from '../../convex/_generated/dataModel';
 import { KanbanBoard } from './kanban';
 
-interface TaskListProps {
-  onEditTask?: (taskId: Id<'tasks'>) => void;
-  onCreateTask?: () => void;
-}
-
-export function TaskList({ onEditTask, onCreateTask }: TaskListProps) {
+export function TaskList() {
   const tasks = useQuery(api.tasks.getTasks, {});
 
   if (tasks === undefined) {
@@ -33,11 +27,5 @@ export function TaskList({ onEditTask, onCreateTask }: TaskListProps) {
     );
   }
 
-  return (
-    <KanbanBoard
-      tasks={tasks}
-      onEditTask={onEditTask || (() => {})}
-      onCreateTask={onCreateTask || (() => {})}
-    />
-  );
+  return <KanbanBoard tasks={tasks} />;
 }

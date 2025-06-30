@@ -27,7 +27,7 @@ export function useErrorHandler() {
   }, []);
 
   const handleError = useCallback(
-    (error: unknown, fallbackMessage = 'エラーが発生しました') => {
+    (error: unknown, fallbackMessage = 'An error occurred') => {
       console.error('Error caught by error handler:', error);
 
       let message = fallbackMessage;
