@@ -1,5 +1,7 @@
 import { useMutation, useQuery } from 'convex/react';
 import { useEffect, useId, useState } from 'react';
+import { api } from '../../convex/_generated/api';
+import type { Id } from '../../convex/_generated/dataModel';
 import {
   Button,
   Card,
@@ -10,9 +12,7 @@ import {
   formatDateForInput,
   parseDateFromInput,
   Select,
-} from '@/components/ui';
-import { api } from '../../convex/_generated/api';
-import type { Id } from '../../convex/_generated/dataModel';
+} from '../ui';
 
 const PRIORITY_OPTIONS = [
   { value: 'low', label: 'Low' },

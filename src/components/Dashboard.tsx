@@ -1,4 +1,5 @@
 import { useQuery } from 'convex/react';
+import { api } from '../../convex/_generated/api';
 import {
   Badge,
   Button,
@@ -8,8 +9,7 @@ import {
   CardTitle,
   getPriorityBadgeProps,
   getStatusBadgeProps,
-} from '@/components/ui';
-import { api } from '../../convex/_generated/api';
+} from '../ui';
 
 export function Dashboard() {
   const stats = useQuery(api.tasks.getTaskStats);

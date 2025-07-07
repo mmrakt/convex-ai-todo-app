@@ -192,11 +192,12 @@ describe('useDragAndDrop', () => {
       preventDefault: vi.fn(),
     } as React.DragEvent;
 
+    let dropZoneProps: ReturnType<typeof result.current.getDropZoneProps>;
+
     act(() => {
       result.current.handleDragStart(mockTask);
+      dropZoneProps = result.current.getDropZoneProps('in_progress');
     });
-
-    const dropZoneProps = result.current.getDropZoneProps('in_progress');
 
     act(() => {
       dropZoneProps.onDrop(mockEvent);

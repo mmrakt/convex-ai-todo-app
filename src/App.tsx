@@ -2,7 +2,7 @@
 
 import { useAuthActions } from '@convex-dev/auth/react';
 import { Authenticated, Unauthenticated, useConvexAuth } from 'convex/react';
-import { useId } from 'react';
+import { useId, useState } from 'react';
 import { TaskList } from '@/components/TaskList';
 import { Button } from '@/components/ui';
 

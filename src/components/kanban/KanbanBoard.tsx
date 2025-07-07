@@ -1,8 +1,8 @@
 'use client';
 
 import { memo, useMemo } from 'react';
-import { ErrorNotification } from '@/components/ui/ErrorNotification';
 import { useDragAndDrop } from '@/hooks/useDragAndDrop';
+import { ErrorNotification } from '../ui/ErrorNotification';
 import { KANBAN_COLUMNS } from './constants';
 import { KanbanColumn } from './KanbanColumn';
 import type { KanbanBoardProps } from './types';

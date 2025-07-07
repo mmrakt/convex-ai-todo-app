@@ -2,12 +2,12 @@
 
 import { useMutation } from 'convex/react';
 import { memo, useCallback, useEffect, useRef, useState } from 'react';
-import { Badge, Button, Card, CardContent, getPriorityBadgeProps } from '@/components/ui';
 import { api } from '../../../convex/_generated/api';
 import type { Doc, Id } from '../../../convex/_generated/dataModel';
 import { TaskDetailModal } from '../TaskDetailModal';
 import { TaskEditModal } from '../TaskEditModal';
 import { TaskSupportModal } from '../TaskSupportModal';
+import { Badge, Button, Card, CardContent, getPriorityBadgeProps } from '../ui';
 import { DRAG_STYLES } from './constants';
 
 interface KanbanCardProps {

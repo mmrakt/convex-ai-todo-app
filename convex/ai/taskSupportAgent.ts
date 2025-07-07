@@ -54,10 +54,6 @@ ${
 
 Please provide comprehensive support from the following perspectives:
 
-1. **Background and Purpose Analysis**
-   - Why this task is important
-   - Expected outcomes
-
 2. **Execution Plan Development**
    - Specific steps
    - Recommended order
