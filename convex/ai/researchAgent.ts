@@ -1,28 +1,35 @@
-import { action } from "@/_generated/server";
-import { v } from "convex/values";
-import { internal } from "@/_generated/api";
-import { getApiConfig, rateLimiter, withRetry, AIServiceError, estimateTokens, calculateCost } from "@/ai/config";
+import { v } from 'convex/values';
+import { internal } from '../_generated/api';
+import { action } from '../_generated/server';
+import {
+  AIServiceError,
+  calculateCost,
+  estimateTokens,
+  getApiConfig,
+  rateLimiter,
+  withRetry,
+} from './config';
 
 export const researchTopic = action({
   args: {
     topic: v.string(),
-    taskId: v.id("tasks"),
-    searchDepth: v.optional(v.union(v.literal("basic"), v.literal("detailed"))),
+    taskId: v.id('tasks'),
+    searchDepth: v.optional(v.union(v.literal('basic'), v.literal('detailed'))),
   },
-  handler: async (ctx, args) => {
-    const { topic, taskId, searchDepth = "basic" } = args;
-    
+  handler: async (_ctx, args) => {
+    const { topic, taskId, searchDepth = 'basic' } = args;
+
     try {
       // Web検索の実行（初期はモック実装）
       const searchResults = await performWebSearch(topic, searchDepth);
-      
+
       // AI要約の実行
       const summary = await generateSummary(topic, searchResults);
-      
+
       // 結果をデータベースに保存
-      await ctx.runMutation(internal.aiContents.create, {
+      await _ctx.runMutation(internal.aiContents.create, {
         taskId,
-        type: "research",
+        type: 'research',
         content: JSON.stringify({
           topic,
           summary: summary.content,
@@ -36,7 +43,7 @@ export const researchTopic = action({
         },
         createdAt: Date.now(),
       });
-      
+
       return {
         topic,
         summary: summary.content,
@@ -47,18 +54,14 @@ export const researchTopic = action({
           cost: summary.cost,
         },
       };
-      
     } catch (error) {
-      console.error("リサーチエラー:", error);
-      
+      console.error('リサーチエラー:', error);
+
       if (error instanceof AIServiceError) {
         throw error;
       }
-      
-      throw new AIServiceError(
-        "トピックのリサーチ中にエラーが発生しました",
-        "RESEARCH_ERROR"
-      );
+
+      throw new AIServiceError('トピックのリサーチ中にエラーが発生しました', 'RESEARCH_ERROR');
     }
   },
 });
@@ -66,7 +69,7 @@ export const researchTopic = action({
 // Web検索の実行（モック実装）
 const performWebSearch = async (
   topic: string,
-  depth: "basic" | "detailed"
+  depth: 'basic' | 'detailed',
 ): Promise<{
   sources: Array<{
     title: string;
@@ -92,8 +95,8 @@ const performWebSearch = async (
       relevance: 0.8,
     },
   ];
-  
-  if (depth === "detailed") {
+
+  if (depth === 'detailed') {
     mockSources.push(
       {
         title: `${topic}の詳細ガイド`,
@@ -106,10 +109,10 @@ const performWebSearch = async (
         url: `https://example.com/best-practices-${topic.toLowerCase().replace(/\s+/g, '-')}`,
         snippet: `${topic}を使用する際のベストプラクティスと注意点について解説します。`,
         relevance: 0.75,
-      }
+      },
     );
   }
-  
+
   return {
     sources: mockSources,
     searchQuery: topic,
@@ -127,22 +130,22 @@ const generateSummary = async (
       relevance: number;
     }>;
     searchQuery: string;
-  }
+  },
 ): Promise<{ content: string; model: string; tokens: number; cost: number }> => {
   const apiConfig = getApiConfig();
-  
+
   // レート制限チェック
   if (!rateLimiter.canMakeRequest(apiConfig.aiModel)) {
     throw new AIServiceError(
-      "レート制限に達しました。しばらく時間を置いてから再試行してください。",
-      "RATE_LIMIT_EXCEEDED",
-      true
+      'レート制限に達しました。しばらく時間を置いてから再試行してください。',
+      'RATE_LIMIT_EXCEEDED',
+      true,
     );
   }
-  
+
   // プロンプト作成
   const prompt = createSummaryPrompt(topic, searchResults);
-  
+
   // AI API呼び出し
   return await withRetry(async () => {
     if (apiConfig.openaiApiKey) {
@@ -150,7 +153,7 @@ const generateSummary = async (
     } else if (apiConfig.anthropicApiKey) {
       return await callClaudeForSummary(apiConfig.anthropicApiKey, prompt);
     } else {
-      throw new AIServiceError("利用可能なAPIキーがありません", "NO_API_KEY");
+      throw new AIServiceError('利用可能なAPIキーがありません', 'NO_API_KEY');
     }
   });
 };
@@ -166,14 +169,15 @@ const createSummaryPrompt = (
       relevance: number;
     }>;
     searchQuery: string;
-  }
+  },
 ): string => {
   const sourcesText = searchResults.sources
-    .map((source, index) => 
-      `${index + 1}. ${source.title}\n   ${source.snippet}\n   URL: ${source.url}`
+    .map(
+      (source, index) =>
+        `${index + 1}. ${source.title}\n   ${source.snippet}\n   URL: ${source.url}`,
     )
-    .join("\n\n");
-  
+    .join('\n\n');
+
   return `以下の検索結果に基づいて、「${topic}」について包括的で実用的な要約を作成してください：
 
 検索結果:
@@ -199,23 +203,24 @@ ${sourcesText}
 const callOpenAIForSummary = async (
   apiKey: string,
   model: string,
-  prompt: string
+  prompt: string,
 ): Promise<{ content: string; model: string; tokens: number; cost: number }> => {
-  const response = await fetch("https://api.openai.com/v1/chat/completions", {
-    method: "POST",
+  const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    method: 'POST',
     headers: {
-      "Authorization": `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
+      Authorization: `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
     },
     body: JSON.stringify({
       model,
       messages: [
         {
-          role: "system",
-          content: "あなたは優秀なリサーチアシスタントです。与えられた情報を元に、正確で実用的な要約を作成してください。",
+          role: 'system',
+          content:
+            'あなたは優秀なリサーチアシスタントです。与えられた情報を元に、正確で実用的な要約を作成してください。',
         },
         {
-          role: "user",
+          role: 'user',
           content: prompt,
         },
       ],
@@ -223,27 +228,27 @@ const callOpenAIForSummary = async (
       max_tokens: 1000,
     }),
   });
-  
+
   if (!response.ok) {
     const error = await response.json();
     throw new AIServiceError(
-      `OpenAI APIエラー: ${error.error?.message || "不明なエラー"}`,
-      "OPENAI_API_ERROR",
-      response.status >= 500
+      `OpenAI APIエラー: ${error.error?.message || '不明なエラー'}`,
+      'OPENAI_API_ERROR',
+      response.status >= 500,
     );
   }
-  
+
   const data = await response.json();
   const content = data.choices[0]?.message?.content;
-  
+
   if (!content) {
-    throw new AIServiceError("APIからの応答が不正です", "INVALID_RESPONSE");
+    throw new AIServiceError('APIからの応答が不正です', 'INVALID_RESPONSE');
   }
-  
+
   const inputTokens = estimateTokens(prompt);
   const outputTokens = data.usage?.completion_tokens || estimateTokens(content);
   const cost = calculateCost(inputTokens + outputTokens);
-  
+
   return {
     content,
     model,
@@ -255,50 +260,50 @@ const callOpenAIForSummary = async (
 // Claude API呼び出し（要約用）
 const callClaudeForSummary = async (
   apiKey: string,
-  prompt: string
+  prompt: string,
 ): Promise<{ content: string; model: string; tokens: number; cost: number }> => {
-  const response = await fetch("https://api.anthropic.com/v1/messages", {
-    method: "POST",
+  const response = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
     headers: {
-      "x-api-key": apiKey,
-      "Content-Type": "application/json",
-      "anthropic-version": "2023-06-01",
+      'x-api-key': apiKey,
+      'Content-Type': 'application/json',
+      'anthropic-version': '2023-06-01',
     },
     body: JSON.stringify({
-      model: "claude-3-sonnet-20240229",
+      model: 'claude-3-sonnet-20240229',
       max_tokens: 1000,
       messages: [
         {
-          role: "user",
+          role: 'user',
           content: prompt,
         },
       ],
     }),
   });
-  
+
   if (!response.ok) {
     const error = await response.json();
     throw new AIServiceError(
-      `Claude APIエラー: ${error.error?.message || "不明なエラー"}`,
-      "CLAUDE_API_ERROR",
-      response.status >= 500
+      `Claude APIエラー: ${error.error?.message || '不明なエラー'}`,
+      'CLAUDE_API_ERROR',
+      response.status >= 500,
     );
   }
-  
+
   const data = await response.json();
   const content = data.content[0]?.text;
-  
+
   if (!content) {
-    throw new AIServiceError("APIからの応答が不正です", "INVALID_RESPONSE");
+    throw new AIServiceError('APIからの応答が不正です', 'INVALID_RESPONSE');
   }
-  
+
   const inputTokens = estimateTokens(prompt);
   const outputTokens = estimateTokens(content);
   const cost = calculateCost(inputTokens + outputTokens);
-  
+
   return {
     content,
-    model: "claude-3-sonnet",
+    model: 'claude-3-sonnet',
     tokens: inputTokens + outputTokens,
     cost,
   };

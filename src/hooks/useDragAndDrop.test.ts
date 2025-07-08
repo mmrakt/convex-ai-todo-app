@@ -20,7 +20,7 @@ vi.mock('../../convex/_generated/api', () => ({
 }));
 
 import { useMutation } from 'convex/react';
-import type { Doc } from '../../convex/_generated/dataModel';
+import type { Doc, Id } from '../../convex/_generated/dataModel';
 import { useErrorHandler } from './useErrorHandler';
 
 const mockUseMutation = useMutation as Mock;
@@ -39,7 +39,8 @@ describe('useDragAndDrop', () => {
     status: 'todo',
     priority: 'medium',
     createdAt: Date.now(),
-    userId: 'user-1' as Id<'users'>,
+    updatedAt: Date.now(),
+    userId: 'user-1',
   };
 
   beforeEach(() => {
@@ -178,7 +179,7 @@ describe('useDragAndDrop', () => {
     const { result } = renderHook(() => useDragAndDrop());
     const mockEvent = {
       preventDefault: vi.fn(),
-    } as React.DragEvent;
+    } as Partial<React.DragEvent> as React.DragEvent;
 
     const dropZoneProps = result.current.getDropZoneProps('in_progress');
     dropZoneProps.onDragOver(mockEvent);
@@ -190,7 +191,7 @@ describe('useDragAndDrop', () => {
     const { result } = renderHook(() => useDragAndDrop());
     const mockEvent = {
       preventDefault: vi.fn(),
-    } as React.DragEvent;
+    } as Partial<React.DragEvent> as React.DragEvent;
 
     let dropZoneProps: ReturnType<typeof result.current.getDropZoneProps>;
 

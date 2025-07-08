@@ -1,6 +1,6 @@
-import { getAuthUserId } from "@convex-dev/auth/server";
-import { mutation, query } from "./_generated/server";
-import { v } from "convex/values";
+import { getAuthUserId } from '@convex-dev/auth/server';
+import { v } from 'convex/values';
+import { mutation, query } from './_generated/server';
 
 // ユーザープロフィールの取得
 export const getUserProfile = query({
@@ -11,8 +11,8 @@ export const getUserProfile = query({
     }
 
     const profile = await ctx.db
-      .query("userProfiles")
-      .withIndex("by_user_id", (q) => q.eq("userId", userId))
+      .query('userProfiles')
+      .withIndex('by_user_id', (q) => q.eq('userId', userId))
       .first();
 
     return profile;
@@ -24,21 +24,23 @@ export const upsertUserProfile = mutation({
   args: {
     name: v.string(),
     skills: v.optional(v.array(v.string())),
-    preferences: v.optional(v.object({
-      theme: v.string(),
-      notifications: v.boolean(),
-      language: v.string(),
-    })),
+    preferences: v.optional(
+      v.object({
+        theme: v.string(),
+        notifications: v.boolean(),
+        language: v.string(),
+      }),
+    ),
   },
   handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx);
     if (!userId) {
-      throw new Error("認証が必要です");
+      throw new Error('認証が必要です');
     }
 
     const existingProfile = await ctx.db
-      .query("userProfiles")
-      .withIndex("by_user_id", (q) => q.eq("userId", userId))
+      .query('userProfiles')
+      .withIndex('by_user_id', (q) => q.eq('userId', userId))
       .first();
 
     const profileData = {
@@ -46,9 +48,9 @@ export const upsertUserProfile = mutation({
       name: args.name,
       skills: args.skills || [],
       preferences: args.preferences || {
-        theme: "light",
+        theme: 'light',
         notifications: true,
-        language: "ja",
+        language: 'ja',
       },
       createdAt: existingProfile?.createdAt || Date.now(),
     };
@@ -56,7 +58,7 @@ export const upsertUserProfile = mutation({
     if (existingProfile) {
       return await ctx.db.patch(existingProfile._id, profileData);
     } else {
-      return await ctx.db.insert("userProfiles", profileData);
+      return await ctx.db.insert('userProfiles', profileData);
     }
   },
 });
@@ -69,16 +71,16 @@ export const updateUserSkills = mutation({
   handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx);
     if (!userId) {
-      throw new Error("認証が必要です");
+      throw new Error('認証が必要です');
     }
 
     const profile = await ctx.db
-      .query("userProfiles")
-      .withIndex("by_user_id", (q) => q.eq("userId", userId))
+      .query('userProfiles')
+      .withIndex('by_user_id', (q) => q.eq('userId', userId))
       .first();
 
     if (!profile) {
-      throw new Error("ユーザープロフィールが見つかりません");
+      throw new Error('ユーザープロフィールが見つかりません');
     }
 
     return await ctx.db.patch(profile._id, {
@@ -99,16 +101,16 @@ export const updateUserPreferences = mutation({
   handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx);
     if (!userId) {
-      throw new Error("認証が必要です");
+      throw new Error('認証が必要です');
     }
 
     const profile = await ctx.db
-      .query("userProfiles")
-      .withIndex("by_user_id", (q) => q.eq("userId", userId))
+      .query('userProfiles')
+      .withIndex('by_user_id', (q) => q.eq('userId', userId))
       .first();
 
     if (!profile) {
-      throw new Error("ユーザープロフィールが見つかりません");
+      throw new Error('ユーザープロフィールが見つかりません');
     }
 
     return await ctx.db.patch(profile._id, {

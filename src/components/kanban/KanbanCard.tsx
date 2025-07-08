@@ -268,7 +268,7 @@ export const KanbanCard = memo(function KanbanCard({
                   )}
                 </div>
                 {isOverdue && (
-                  <Badge variant="destructive" size="sm" className="ml-2 flex-shrink-0">
+                  <Badge variant="destructive" className="ml-2 flex-shrink-0">
                     Overdue
                   </Badge>
                 )}
@@ -281,12 +281,8 @@ export const KanbanCard = memo(function KanbanCard({
               )}
 
               <div className="flex flex-wrap gap-1">
-                <Badge {...getPriorityBadgeProps(task.priority)} size="sm" />
-                {task.category && (
-                  <Badge variant="secondary" size="sm">
-                    {task.category}
-                  </Badge>
-                )}
+                <Badge {...getPriorityBadgeProps(task.priority)} />
+                {task.category && <Badge variant="secondary">{task.category}</Badge>}
               </div>
 
               <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">

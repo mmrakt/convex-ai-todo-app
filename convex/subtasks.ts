@@ -1,12 +1,12 @@
-import { getAuthUserId } from "@convex-dev/auth/server";
-import { v } from "convex/values";
-import { mutation, query } from "@/_generated/server";
-import { AuthenticationError, handleError } from "@/lib/base";
-import { SubtaskRepository } from "@/lib/repositories/subtaskRepository";
-import { TaskRepository } from "@/lib/repositories/taskRepository";
+import { getAuthUserId } from '@convex-dev/auth/server';
+import { v } from 'convex/values';
+import { mutation, query } from './_generated/server';
+import { AuthenticationError, handleError } from './lib/base';
+import { SubtaskRepository } from './lib/repositories/subtaskRepository';
+import { TaskRepository } from './lib/repositories/taskRepository';
 
 export const getSubtasks = query({
-  args: { taskId: v.id("tasks") },
+  args: { taskId: v.id('tasks') },
   handler: async (ctx, args) => {
     try {
       const userId = await getAuthUserId(ctx);
@@ -20,7 +20,7 @@ export const getSubtasks = query({
 
       const subtaskRepo = new SubtaskRepository(ctx.db);
       return await subtaskRepo.findByTaskId(args.taskId);
-    } catch (error) {
+    } catch (_error) {
       // Return empty array for errors to maintain backwards compatibility
       return [];
     }
@@ -29,7 +29,7 @@ export const getSubtasks = query({
 
 export const createSubtask = mutation({
   args: {
-    taskId: v.id("tasks"),
+    taskId: v.id('tasks'),
     title: v.string(),
   },
   handler: async (ctx, args) => {
@@ -53,7 +53,7 @@ export const createSubtask = mutation({
 
 export const updateSubtask = mutation({
   args: {
-    subtaskId: v.id("subtasks"),
+    subtaskId: v.id('subtasks'),
     title: v.optional(v.string()),
     completed: v.optional(v.boolean()),
     order: v.optional(v.number()),
@@ -71,7 +71,7 @@ export const updateSubtask = mutation({
       // Get subtask and verify ownership through task
       const subtask = await subtaskRepo.findById(args.subtaskId);
       if (!subtask) {
-        throw new Error("サブタスクが見つかりません");
+        throw new Error('サブタスクが見つかりません');
       }
 
       await taskRepo.findByIdAndUserId(subtask.taskId, userId);
@@ -85,7 +85,7 @@ export const updateSubtask = mutation({
 });
 
 export const toggleSubtask = mutation({
-  args: { subtaskId: v.id("subtasks") },
+  args: { subtaskId: v.id('subtasks') },
   handler: async (ctx, args) => {
     try {
       const userId = await getAuthUserId(ctx);
@@ -99,7 +99,7 @@ export const toggleSubtask = mutation({
       // Get subtask and verify ownership through task
       const subtask = await subtaskRepo.findById(args.subtaskId);
       if (!subtask) {
-        throw new Error("サブタスクが見つかりません");
+        throw new Error('サブタスクが見つかりません');
       }
 
       await taskRepo.findByIdAndUserId(subtask.taskId, userId);
@@ -112,7 +112,7 @@ export const toggleSubtask = mutation({
 });
 
 export const deleteSubtask = mutation({
-  args: { subtaskId: v.id("subtasks") },
+  args: { subtaskId: v.id('subtasks') },
   handler: async (ctx, args) => {
     try {
       const userId = await getAuthUserId(ctx);
@@ -126,7 +126,7 @@ export const deleteSubtask = mutation({
       // Get subtask and verify ownership through task
       const subtask = await subtaskRepo.findById(args.subtaskId);
       if (!subtask) {
-        throw new Error("サブタスクが見つかりません");
+        throw new Error('サブタスクが見つかりません');
       }
 
       await taskRepo.findByIdAndUserId(subtask.taskId, userId);
@@ -140,12 +140,12 @@ export const deleteSubtask = mutation({
 
 export const reorderSubtasks = mutation({
   args: {
-    taskId: v.id("tasks"),
+    taskId: v.id('tasks'),
     subtaskOrders: v.array(
       v.object({
-        subtaskId: v.id("subtasks"),
+        subtaskId: v.id('subtasks'),
         order: v.number(),
-      })
+      }),
     ),
   },
   handler: async (ctx, args) => {
@@ -161,7 +161,7 @@ export const reorderSubtasks = mutation({
       // Verify task ownership
       await taskRepo.findByIdAndUserId(args.taskId, userId);
 
-      await subtaskRepo.reorder(args.taskId, args.subtaskOrders);
+      await subtaskRepo.reorder(args.subtaskOrders);
     } catch (error) {
       throw handleError(error);
     }

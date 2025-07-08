@@ -35,28 +35,6 @@ export default function App() {
   );
 }
 
-interface NavButtonProps {
-  active: boolean;
-  onClick: () => void;
-  children: React.ReactNode;
-}
-
-function _NavButton({ active, onClick, children }: NavButtonProps) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-        active
-          ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300'
-          : 'text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700'
-      }`}
-    >
-      {children}
-    </button>
-  );
-}
-
 function SignOutButton() {
   const { isAuthenticated } = useConvexAuth();
   const { signOut } = useAuthActions();
@@ -151,7 +129,7 @@ function SignInForm() {
           )}
 
           <div>
-            <Button type="submit" isLoading={isLoading} className="w-full" size="lg">
+            <Button type="submit" disabled={isLoading} className="w-full" size="lg">
               {flow === 'signIn' ? 'Sign In' : 'Create Account'}
             </Button>
           </div>

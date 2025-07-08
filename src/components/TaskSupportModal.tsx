@@ -1,4 +1,5 @@
 import { useAction, useQuery } from 'convex/react';
+import type React from 'react';
 import { useState } from 'react';
 import { api } from '../../convex/_generated/api';
 import type { Id } from '../../convex/_generated/dataModel';
@@ -34,7 +35,7 @@ function MarkdownContent({ content }: { content: string }) {
       if (headerMatch) {
         flushList();
         const level = headerMatch[1].length;
-        const HeaderTag = `h${Math.min(level, 6)}` as keyof JSX.IntrinsicElements;
+        const HeaderTag = `h${Math.min(level, 6)}` as keyof React.JSX.IntrinsicElements;
         elements.push(
           <HeaderTag
             key={`header-${index}-${line.slice(0, 20)}`}

@@ -17,7 +17,8 @@ const mockTask: Doc<'tasks'> = {
   status: 'todo',
   priority: 'medium',
   createdAt: Date.now(),
-  userId: 'user-1' as Id<'users'>,
+  updatedAt: Date.now(),
+  userId: 'user-1',
 };
 
 const mockTasks: Doc<'tasks'>[] = [mockTask];
@@ -55,6 +56,7 @@ describe('KanbanColumnProps', () => {
       title: 'Test Column',
       status: 'todo',
       tasks: mockTasks,
+      onEditTask: vi.fn(),
       onDragStart: mockHandlers.onDragStart,
       onDragEnd: mockHandlers.onDragEnd,
       onDrop: mockHandlers.onDrop,
@@ -77,6 +79,7 @@ describe('KanbanColumnProps', () => {
       title: 'Test Column',
       status: 'in_progress',
       tasks: [],
+      onEditTask: vi.fn(),
       onDragStart: vi.fn(),
       onDragEnd: vi.fn(),
       onDrop: vi.fn(),
@@ -222,6 +225,7 @@ describe('Type consistency', () => {
       title: 'Test',
       status: 'todo',
       tasks: [task],
+      onEditTask: vi.fn(),
       onDragStart: vi.fn(),
       onDragEnd: vi.fn(),
       onDrop: vi.fn(),
@@ -252,6 +256,7 @@ describe('Type consistency', () => {
       title: 'Test',
       status,
       tasks: [],
+      onEditTask: vi.fn(),
       onDragStart: vi.fn(),
       onDragEnd: vi.fn(),
       onDrop: vi.fn(),

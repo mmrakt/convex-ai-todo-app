@@ -1,22 +1,18 @@
-import type { Id } from "@/_generated/dataModel";
+import type { Id } from '../../_generated/dataModel';
 import {
   type AuthenticatedMutationCtx,
   type AuthenticatedQueryCtx,
   BaseService,
   ValidationError,
-} from "@/lib/base";
-import { SubtaskRepository } from "@/lib/repositories/subtaskRepository";
-import {
-  type TaskData,
-  type TaskFilter,
-  TaskRepository,
-} from "@/lib/repositories/taskRepository";
+} from '../base';
+import { SubtaskRepository } from '../repositories/subtaskRepository';
+import { type TaskData, type TaskFilter, TaskRepository } from '../repositories/taskRepository';
 
 export interface CreateTaskInput {
   title: string;
   description?: string;
-  status?: TaskData["status"];
-  priority?: TaskData["priority"];
+  status?: TaskData['status'];
+  priority?: TaskData['priority'];
   deadline?: number;
   category?: string;
   estimatedTime?: number;
@@ -26,13 +22,16 @@ export interface CreateTaskInput {
 export interface UpdateTaskInput {
   title?: string;
   description?: string;
-  status?: TaskData["status"];
-  priority?: TaskData["priority"];
+  status?: TaskData['status'];
+  priority?: TaskData['priority'];
   deadline?: number;
   category?: string;
   estimatedTime?: number;
   actualTime?: number;
   memo?: string;
+  aiSupportStatus?: TaskData['aiSupportStatus'];
+  aiSupportContent?: string;
+  aiSupportGeneratedAt?: number;
 }
 
 export class TaskService extends BaseService {
@@ -45,14 +44,14 @@ export class TaskService extends BaseService {
     this.subtaskRepo = new SubtaskRepository(ctx.db);
   }
 
-  async getTasks(filter: Omit<TaskFilter, "userId">): Promise<TaskData[]> {
+  async getTasks(filter: Omit<TaskFilter, 'userId'>): Promise<TaskData[]> {
     return this.taskRepo.findByUser({
       ...filter,
       userId: this.ctx.userId,
     });
   }
 
-  async getTask(id: Id<"tasks">): Promise<TaskData | null> {
+  async getTask(id: Id<'tasks'>): Promise<TaskData | null> {
     try {
       return await this.taskRepo.findByIdAndUserId(id, this.ctx.userId);
     } catch {
@@ -60,19 +59,19 @@ export class TaskService extends BaseService {
     }
   }
 
-  async createTask(input: CreateTaskInput): Promise<Id<"tasks">> {
+  async createTask(input: CreateTaskInput): Promise<Id<'tasks'>> {
     // Validate input
     this.validateTaskInput(input);
 
     return await this.taskRepo.create({
       ...input,
       userId: this.ctx.userId,
-      status: input.status || "todo",
-      priority: input.priority || "medium",
+      status: input.status || 'todo',
+      priority: input.priority || 'medium',
     });
   }
 
-  async updateTask(id: Id<"tasks">, input: UpdateTaskInput): Promise<void> {
+  async updateTask(id: Id<'tasks'>, input: UpdateTaskInput): Promise<void> {
     // Verify ownership
     await this.taskRepo.findByIdAndUserId(id, this.ctx.userId);
 
@@ -87,7 +86,7 @@ export class TaskService extends BaseService {
     await this.taskRepo.update(id, input);
   }
 
-  async deleteTask(id: Id<"tasks">): Promise<void> {
+  async deleteTask(id: Id<'tasks'>): Promise<void> {
     // Verify ownership
     await this.taskRepo.findByIdAndUserId(id, this.ctx.userId);
 
@@ -100,8 +99,8 @@ export class TaskService extends BaseService {
 
   async getTaskStats(): Promise<{
     totalTasks: number;
-    byStatus: Record<TaskData["status"], number>;
-    byPriority: Record<TaskData["priority"], number>;
+    byStatus: Record<TaskData['status'], number>;
+    byPriority: Record<TaskData['priority'], number>;
     upcomingDeadlines: TaskData[];
   }> {
     const userId = this.ctx.userId;
@@ -109,10 +108,13 @@ export class TaskService extends BaseService {
 
     const byStatus = await this.taskRepo.countByStatus(userId);
 
-    const byPriority = tasks.reduce((acc, task) => {
-      acc[task.priority] = (acc[task.priority] || 0) + 1;
-      return acc;
-    }, {} as Record<TaskData["priority"], number>);
+    const byPriority = tasks.reduce(
+      (acc, task) => {
+        acc[task.priority] = (acc[task.priority] || 0) + 1;
+        return acc;
+      },
+      {} as Record<TaskData['priority'], number>,
+    );
 
     const upcomingDeadlines = await this.taskRepo.getUpcomingDeadlines(userId);
 
@@ -124,9 +126,7 @@ export class TaskService extends BaseService {
     };
   }
 
-  async getTaskWithProgress(
-    id: Id<"tasks">
-  ): Promise<TaskData & { progress: number }> {
+  async getTaskWithProgress(id: Id<'tasks'>): Promise<TaskData & { progress: number }> {
     const task = await this.taskRepo.findByIdAndUserId(id, this.ctx.userId);
     const progress = await this.subtaskRepo.getCompletionRate(id);
 
@@ -136,20 +136,17 @@ export class TaskService extends BaseService {
     };
   }
 
-  private validateTaskInput(input: {
-    title: string;
-    description?: string;
-  }): void {
+  private validateTaskInput(input: { title: string; description?: string }): void {
     if (!input.title || input.title.trim().length === 0) {
-      throw new ValidationError("Title is required");
+      throw new ValidationError('Title is required');
     }
 
     if (input.title.length > 200) {
-      throw new ValidationError("Title must be 200 characters or less");
+      throw new ValidationError('Title must be 200 characters or less');
     }
 
     if (input.description && input.description.length > 2000) {
-      throw new ValidationError("Description must be 2000 characters or less");
+      throw new ValidationError('Description must be 2000 characters or less');
     }
   }
 }

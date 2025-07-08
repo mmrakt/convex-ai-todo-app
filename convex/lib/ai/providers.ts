@@ -4,8 +4,8 @@ import {
   calculateCost,
   estimateTokens,
   withRetry,
-} from "@/ai/config";
-import { AppError } from "@/lib/base";
+} from '../../ai/config';
+import { AppError } from '../base';
 
 // Common types for AI providers
 export interface AIRequest {
@@ -34,7 +34,7 @@ export abstract class BaseAIProvider implements AIProvider {
 
   protected async makeRequest<T>(
     requestFn: () => Promise<T>,
-    retryable: boolean = true
+    retryable: boolean = true,
   ): Promise<T> {
     if (retryable) {
       return withRetry(requestFn);
@@ -48,11 +48,11 @@ export abstract class BaseAIProvider implements AIProvider {
 
 // OpenAI Provider
 export class OpenAIProvider extends BaseAIProvider {
-  name = "OpenAI";
+  name = 'OpenAI';
 
   constructor(
     private apiKey: string,
-    private model: string = AI_CONFIG.DEFAULT_MODEL
+    private model: string = AI_CONFIG.DEFAULT_MODEL,
   ) {
     super();
   }
@@ -63,24 +63,21 @@ export class OpenAIProvider extends BaseAIProvider {
 
   async generateResponse(request: AIRequest): Promise<AIResponse> {
     if (!this.isAvailable()) {
-      throw new AIServiceError(
-        "OpenAI APIキーが設定されていません",
-        "NO_API_KEY"
-      );
+      throw new AIServiceError('OpenAI APIキーが設定されていません', 'NO_API_KEY');
     }
 
-    const messages: Array<{ role: "system" | "user"; content: string }> = [];
+    const messages: Array<{ role: 'system' | 'user'; content: string }> = [];
     if (request.systemPrompt) {
-      messages.push({ role: "system", content: request.systemPrompt });
+      messages.push({ role: 'system', content: request.systemPrompt });
     }
-    messages.push({ role: "user", content: request.prompt });
+    messages.push({ role: 'user', content: request.prompt });
 
     const response = await this.makeRequest(async () => {
-      const res = await fetch("https://api.openai.com/v1/chat/completions", {
-        method: "POST",
+      const res = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
         headers: {
           Authorization: `Bearer ${this.apiKey}`,
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           model: this.model,
@@ -93,9 +90,9 @@ export class OpenAIProvider extends BaseAIProvider {
       if (!res.ok) {
         const error = await res.json();
         throw new AIServiceError(
-          `OpenAI APIエラー: ${error.error?.message || "不明なエラー"}`,
-          "OPENAI_API_ERROR",
-          res.status >= 500
+          `OpenAI APIエラー: ${error.error?.message || '不明なエラー'}`,
+          'OPENAI_API_ERROR',
+          res.status >= 500,
         );
       }
 
@@ -104,12 +101,11 @@ export class OpenAIProvider extends BaseAIProvider {
 
     const content = response.choices[0]?.message?.content;
     if (!content) {
-      throw new AIServiceError("APIからの応答が不正です", "INVALID_RESPONSE");
+      throw new AIServiceError('APIからの応答が不正です', 'INVALID_RESPONSE');
     }
 
     const inputTokens = estimateTokens(request.prompt);
-    const outputTokens =
-      response.usage?.completion_tokens || estimateTokens(content);
+    const outputTokens = response.usage?.completion_tokens || estimateTokens(content);
     const totalTokens = inputTokens + outputTokens;
 
     return {
@@ -123,8 +119,8 @@ export class OpenAIProvider extends BaseAIProvider {
 
 // Claude Provider
 export class ClaudeProvider extends BaseAIProvider {
-  name = "Claude";
-  private model = "claude-3-sonnet-20240229";
+  name = 'Claude';
+  private model = 'claude-3-sonnet-20240229';
 
   constructor(private apiKey: string) {
     super();
@@ -136,15 +132,12 @@ export class ClaudeProvider extends BaseAIProvider {
 
   async generateResponse(request: AIRequest): Promise<AIResponse> {
     if (!this.isAvailable()) {
-      throw new AIServiceError(
-        "Claude APIキーが設定されていません",
-        "NO_API_KEY"
-      );
+      throw new AIServiceError('Claude APIキーが設定されていません', 'NO_API_KEY');
     }
 
-    const messages: Array<{ role: "user"; content: string }> = [
+    const messages: Array<{ role: 'user'; content: string }> = [
       {
-        role: "user",
+        role: 'user',
         content: request.systemPrompt
           ? `${request.systemPrompt}\n\n${request.prompt}`
           : request.prompt,
@@ -152,12 +145,12 @@ export class ClaudeProvider extends BaseAIProvider {
     ];
 
     const response = await this.makeRequest(async () => {
-      const res = await fetch("https://api.anthropic.com/v1/messages", {
-        method: "POST",
+      const res = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
         headers: {
-          "x-api-key": this.apiKey,
-          "Content-Type": "application/json",
-          "anthropic-version": "2023-06-01",
+          'x-api-key': this.apiKey,
+          'Content-Type': 'application/json',
+          'anthropic-version': '2023-06-01',
         },
         body: JSON.stringify({
           model: this.model,
@@ -170,9 +163,9 @@ export class ClaudeProvider extends BaseAIProvider {
       if (!res.ok) {
         const error = await res.json();
         throw new AIServiceError(
-          `Claude APIエラー: ${error.error?.message || "不明なエラー"}`,
-          "CLAUDE_API_ERROR",
-          res.status >= 500
+          `Claude APIエラー: ${error.error?.message || '不明なエラー'}`,
+          'CLAUDE_API_ERROR',
+          res.status >= 500,
         );
       }
 
@@ -181,7 +174,7 @@ export class ClaudeProvider extends BaseAIProvider {
 
     const content = response.content[0]?.text;
     if (!content) {
-      throw new AIServiceError("APIからの応答が不正です", "INVALID_RESPONSE");
+      throw new AIServiceError('APIからの応答が不正です', 'INVALID_RESPONSE');
     }
 
     const inputTokens = estimateTokens(request.prompt);
@@ -190,7 +183,7 @@ export class ClaudeProvider extends BaseAIProvider {
 
     return {
       content,
-      model: "claude-3-sonnet",
+      model: 'claude-3-sonnet',
       tokens: totalTokens,
       cost: calculateCost(totalTokens),
     };
@@ -199,9 +192,12 @@ export class ClaudeProvider extends BaseAIProvider {
 
 // Ollama Provider
 export class OllamaProvider extends BaseAIProvider {
-  name = "Ollama";
+  name = 'Ollama';
 
-  constructor(private baseUrl: string, private model: string) {
+  constructor(
+    private baseUrl: string,
+    private model: string,
+  ) {
     super();
   }
 
@@ -211,7 +207,7 @@ export class OllamaProvider extends BaseAIProvider {
 
   async generateResponse(request: AIRequest): Promise<AIResponse> {
     if (!this.isAvailable()) {
-      throw new AIServiceError("Ollama設定が不完全です", "OLLAMA_CONFIG_ERROR");
+      throw new AIServiceError('Ollama設定が不完全です', 'OLLAMA_CONFIG_ERROR');
     }
 
     const prompt = request.systemPrompt
@@ -220,9 +216,9 @@ export class OllamaProvider extends BaseAIProvider {
 
     const response = await this.makeRequest(async () => {
       const res = await fetch(`${this.baseUrl}/api/generate`, {
-        method: "POST",
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           model: this.model,
@@ -238,8 +234,8 @@ export class OllamaProvider extends BaseAIProvider {
       if (!res.ok) {
         throw new AIServiceError(
           `Ollama APIエラー: ${res.statusText}`,
-          "OLLAMA_API_ERROR",
-          res.status >= 500
+          'OLLAMA_API_ERROR',
+          res.status >= 500,
         );
       }
 
@@ -247,10 +243,7 @@ export class OllamaProvider extends BaseAIProvider {
     }, false); // Ollama is local, no retry needed
 
     if (!response.response) {
-      throw new AIServiceError(
-        "Ollamaからの応答が不正です",
-        "INVALID_RESPONSE"
-      );
+      throw new AIServiceError('Ollamaからの応答が不正です', 'INVALID_RESPONSE');
     }
 
     const tokens = estimateTokens(response.response);
@@ -265,39 +258,36 @@ export class OllamaProvider extends BaseAIProvider {
 }
 
 // Factory for creating AI providers
-export class AIProviderFactory {
-  static create(config: {
-    openaiApiKey?: string;
-    anthropicApiKey?: string;
-    ollamaBaseUrl?: string;
-    ollamaModel?: string;
-    preferredModel?: string;
-  }): AIProvider {
-    // Try to create provider based on preferred model
-    if (config.preferredModel?.includes("gpt") && config.openaiApiKey) {
-      return new OpenAIProvider(config.openaiApiKey, config.preferredModel);
-    }
+interface ProviderConfig {
+  openaiApiKey?: string;
+  anthropicApiKey?: string;
+  ollamaBaseUrl?: string;
+  ollamaModel?: string;
+  preferredModel?: string;
+}
 
-    if (config.preferredModel?.includes("claude") && config.anthropicApiKey) {
-      return new ClaudeProvider(config.anthropicApiKey);
-    }
-
-    // Fallback to available providers
-    if (config.openaiApiKey) {
-      return new OpenAIProvider(config.openaiApiKey, config.preferredModel);
-    }
-
-    if (config.anthropicApiKey) {
-      return new ClaudeProvider(config.anthropicApiKey);
-    }
-
-    if (config.ollamaBaseUrl && config.ollamaModel) {
-      return new OllamaProvider(config.ollamaBaseUrl, config.ollamaModel);
-    }
-
-    throw new AppError(
-      "利用可能なAIプロバイダーが見つかりません",
-      "NO_AI_PROVIDER"
-    );
+export function createAIProvider(config: ProviderConfig): AIProvider {
+  // Try to create provider based on preferred model
+  if (config.preferredModel?.includes('gpt') && config.openaiApiKey) {
+    return new OpenAIProvider(config.openaiApiKey, config.preferredModel);
   }
+
+  if (config.preferredModel?.includes('claude') && config.anthropicApiKey) {
+    return new ClaudeProvider(config.anthropicApiKey);
+  }
+
+  // Fallback to available providers
+  if (config.openaiApiKey) {
+    return new OpenAIProvider(config.openaiApiKey, config.preferredModel);
+  }
+
+  if (config.anthropicApiKey) {
+    return new ClaudeProvider(config.anthropicApiKey);
+  }
+
+  if (config.ollamaBaseUrl && config.ollamaModel) {
+    return new OllamaProvider(config.ollamaBaseUrl, config.ollamaModel);
+  }
+
+  throw new AppError('利用可能なAIプロバイダーが見つかりません', 'NO_AI_PROVIDER');
 }

@@ -9,7 +9,9 @@ import {
   CardTitle,
   getPriorityBadgeProps,
   getStatusBadgeProps,
-} from '../ui';
+} from './ui';
+
+type Priority = 'low' | 'medium' | 'high' | 'urgent';
 
 export function Dashboard() {
   const stats = useQuery(api.tasks.getTaskStats);
@@ -62,7 +64,7 @@ export function Dashboard() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card variant="elevated">
+        <Card>
           <CardHeader>
             <CardTitle>Priority Summary</CardTitle>
           </CardHeader>
@@ -76,7 +78,7 @@ export function Dashboard() {
           </CardContent>
         </Card>
 
-        <Card variant="elevated">
+        <Card>
           <CardHeader>
             <CardTitle>Recent Tasks</CardTitle>
           </CardHeader>
@@ -95,8 +97,8 @@ export function Dashboard() {
                         {task.title}
                       </h4>
                       <div className="flex items-center gap-2 mt-1">
-                        <Badge {...getStatusBadgeProps(task.status)} size="sm" />
-                        <Badge {...getPriorityBadgeProps(task.priority)} size="sm" />
+                        <Badge {...getStatusBadgeProps(task.status)} />
+                        <Badge {...getPriorityBadgeProps(task.priority)} />
                       </div>
                     </div>
                   </div>
@@ -128,7 +130,7 @@ interface StatsCardProps {
 
 function StatsCard({ title, value, icon, color }: StatsCardProps) {
   return (
-    <Card variant="elevated" className="overflow-hidden">
+    <Card className="overflow-hidden">
       <CardContent className="p-6">
         <div className="flex items-center">
           <div className={`p-3 rounded-lg ${color} text-white text-2xl mr-4`}>{icon}</div>
@@ -148,14 +150,12 @@ interface PriorityItemProps {
 }
 
 function PriorityItem({ priority, count }: PriorityItemProps) {
-  const { variant, children } = getPriorityBadgeProps(priority);
+  const badgeProps = getPriorityBadgeProps(priority as Priority);
 
   return (
     <div className="flex items-center justify-between">
       <div className="flex items-center gap-2">
-        <Badge variant={variant} size="sm">
-          {children}
-        </Badge>
+        <Badge {...badgeProps}>{priority}</Badge>
         <span className="text-sm text-gray-600 dark:text-gray-400">Priority</span>
       </div>
       <span className="text-sm font-medium text-gray-900 dark:text-gray-100">{count} tasks</span>

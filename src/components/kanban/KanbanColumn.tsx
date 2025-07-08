@@ -3,7 +3,7 @@
 import { memo, useState } from 'react';
 import type { Doc } from '../../../convex/_generated/dataModel';
 import { QuickTaskForm } from '../QuickTaskForm';
-import { DRAG_STYLES } from './constants';
+import { DRAG_STYLES, type TaskStatus } from './constants';
 import { KanbanCard } from './KanbanCard';
 import type { KanbanColumnProps } from './types';
 
@@ -94,7 +94,7 @@ export const KanbanColumn = memo(function KanbanColumn({
 
             {showAddForm && (
               <QuickTaskForm
-                status={status}
+                status={status as TaskStatus}
                 onCancel={() => setShowAddForm(false)}
                 onSuccess={() => setShowAddForm(false)}
               />

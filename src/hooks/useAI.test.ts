@@ -1,5 +1,6 @@
 import { act, renderHook } from '@testing-library/react';
 import { beforeEach, describe, expect, it, type Mock, vi } from 'vitest';
+import type { Id } from '../../convex/_generated/dataModel';
 import {
   useAIAvailability,
   useAIOperations,

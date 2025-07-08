@@ -12,7 +12,11 @@ import {
   formatDateForInput,
   parseDateFromInput,
   Select,
-} from '../ui';
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from './ui';
 
 const PRIORITY_OPTIONS = [
   { value: 'low', label: 'Low' },
@@ -123,7 +127,7 @@ export function TaskForm({ taskId, onSuccess, onCancel }: TaskFormProps) {
 
   return (
     <div className="p-6">
-      <Card variant="elevated">
+      <Card>
         <CardHeader>
           <CardTitle>{isEditing ? 'Edit Task' : 'Create New Task'}</CardTitle>
         </CardHeader>
@@ -180,11 +184,18 @@ export function TaskForm({ taskId, onSuccess, onCancel }: TaskFormProps) {
                 >
                   Priority
                 </label>
-                <Select
-                  options={PRIORITY_OPTIONS}
-                  value={priority}
-                  onChange={(e) => setPriority(e.target.value)}
-                />
+                <Select value={priority} onValueChange={setPriority}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select priority" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {PRIORITY_OPTIONS.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               <div>
@@ -210,7 +221,7 @@ export function TaskForm({ taskId, onSuccess, onCancel }: TaskFormProps) {
               <DatePicker
                 label="Deadline"
                 value={deadline}
-                onChange={(e) => setDeadline(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDeadline(e.target.value)}
               />
 
               <div>
@@ -249,7 +260,7 @@ export function TaskForm({ taskId, onSuccess, onCancel }: TaskFormProps) {
             )}
 
             <div className="flex flex-col sm:flex-row gap-4 pt-4">
-              <Button type="submit" isLoading={isSubmitting} className="flex-1">
+              <Button type="submit" disabled={isSubmitting} className="flex-1">
                 {isEditing ? 'Update Task' : 'Create Task'}
               </Button>
 

@@ -10,7 +10,7 @@ export enum LogLevel {
 export interface LogEntry {
   level: LogLevel;
   message: string;
-  context?: Record<string, any>;
+  context?: Record<string, unknown>;
   timestamp: number;
   userId?: string;
 }
@@ -30,7 +30,7 @@ export class Logger {
     return Logger.instance;
   }
 
-  static create(context?: Record<string, any>): ContextLogger {
+  static create(context?: Record<string, unknown>): ContextLogger {
     const logger = Logger.getInstance();
     return new ContextLogger(logger, context);
   }
@@ -42,33 +42,33 @@ export class Logger {
   private formatMessage(
     level: LogLevel,
     message: string,
-    context?: Record<string, any>
+    context?: Record<string, unknown>,
   ): string {
     const timestamp = new Date().toISOString();
     const levelName = LogLevel[level];
-    const contextStr = context ? ` | ${JSON.stringify(context)}` : "";
+    const contextStr = context ? ` | ${JSON.stringify(context)}` : '';
     return `[${timestamp}] ${levelName}: ${message}${contextStr}`;
   }
 
-  error(message: string, context?: Record<string, any>): void {
+  error(message: string, context?: Record<string, unknown>): void {
     if (this.shouldLog(LogLevel.ERROR)) {
       console.error(this.formatMessage(LogLevel.ERROR, message, context));
     }
   }
 
-  warn(message: string, context?: Record<string, any>): void {
+  warn(message: string, context?: Record<string, unknown>): void {
     if (this.shouldLog(LogLevel.WARN)) {
       console.warn(this.formatMessage(LogLevel.WARN, message, context));
     }
   }
 
-  info(message: string, context?: Record<string, any>): void {
+  info(message: string, context?: Record<string, unknown>): void {
     if (this.shouldLog(LogLevel.INFO)) {
       console.log(this.formatMessage(LogLevel.INFO, message, context));
     }
   }
 
-  debug(message: string, context?: Record<string, any>): void {
+  debug(message: string, context?: Record<string, unknown>): void {
     if (this.shouldLog(LogLevel.DEBUG)) {
       console.log(this.formatMessage(LogLevel.DEBUG, message, context));
     }
@@ -79,22 +79,22 @@ export class Logger {
 class ContextLogger {
   constructor(
     private logger: Logger,
-    private defaultContext?: Record<string, any>
+    private defaultContext?: Record<string, unknown>,
   ) {}
 
-  error(message: string, context?: Record<string, any>): void {
+  error(message: string, context?: Record<string, unknown>): void {
     this.logger.error(message, { ...this.defaultContext, ...context });
   }
 
-  warn(message: string, context?: Record<string, any>): void {
+  warn(message: string, context?: Record<string, unknown>): void {
     this.logger.warn(message, { ...this.defaultContext, ...context });
   }
 
-  info(message: string, context?: Record<string, any>): void {
+  info(message: string, context?: Record<string, unknown>): void {
     this.logger.info(message, { ...this.defaultContext, ...context });
   }
 
-  debug(message: string, context?: Record<string, any>): void {
+  debug(message: string, context?: Record<string, unknown>): void {
     this.logger.debug(message, { ...this.defaultContext, ...context });
   }
 }
@@ -102,7 +102,7 @@ class ContextLogger {
 // Convenience functions
 export const logger = Logger.getInstance();
 
-export function createLogger(context?: Record<string, any>): ContextLogger {
+export function createLogger(context?: Record<string, unknown>): ContextLogger {
   return Logger.create(context);
 }
 
@@ -110,7 +110,7 @@ export function createLogger(context?: Record<string, any>): ContextLogger {
 export function withPerformanceLogging<T>(
   operation: string,
   fn: () => Promise<T> | T,
-  context?: Record<string, any>
+  context?: Record<string, unknown>,
 ): Promise<T> {
   const start = Date.now();
   const operationLogger = createLogger({ operation, ...context });
@@ -123,11 +123,11 @@ export function withPerformanceLogging<T>(
     return result;
   };
 
-  const handleError = (error: any) => {
+  const handleError = (error: unknown) => {
     const duration = Date.now() - start;
     operationLogger.error(`Operation failed: ${operation}`, {
       duration,
-      error: error.message || error,
+      error: error instanceof Error ? error.message : String(error),
     });
     throw error;
   };

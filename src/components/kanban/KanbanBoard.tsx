@@ -2,6 +2,7 @@
 
 import { memo, useMemo } from 'react';
 import { useDragAndDrop } from '@/hooks/useDragAndDrop';
+import type { Id } from '../../../convex/_generated/dataModel';
 import { ErrorNotification } from '../ui/ErrorNotification';
 import { KANBAN_COLUMNS } from './constants';
 import { KanbanColumn } from './KanbanColumn';
@@ -28,6 +29,11 @@ export const KanbanBoard = memo(function KanbanBoard({
   }, [tasks]);
 
   const totalTasks = tasks.length;
+
+  const handleEditTask = (taskId: Id<'tasks'>) => {
+    // TODO: Implement task editing functionality
+    console.log('Edit task:', taskId);
+  };
   const completedTasks = tasks.filter((task) => task.status === 'completed').length;
   const completionRate = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
 
@@ -53,6 +59,7 @@ export const KanbanBoard = memo(function KanbanBoard({
               title={column.title}
               status={column.status}
               tasks={columnTasks}
+              onEditTask={handleEditTask}
               onDragStart={handleDragStart}
               onDragEnd={handleDragEnd}
               color={column.color}

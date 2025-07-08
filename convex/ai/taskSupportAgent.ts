@@ -1,25 +1,17 @@
-import { v } from "convex/values";
-import { api } from "@/_generated/api";
-import { action } from "@/_generated/server";
-import { callAI, createUserMessage } from "@/ai/aiService";
-import {
-  AI_PROVIDER,
-  checkRateLimit,
-  estimateTokens,
-  getCurrentProviderConfig,
-} from "@/ai/config";
+import { v } from 'convex/values';
+import { api } from '../_generated/api';
+import { action } from '../_generated/server';
+import { callAI, createUserMessage } from './aiService';
+import { AI_PROVIDER, checkRateLimit, estimateTokens, getCurrentProviderConfig } from './config';
 
 export const supportTask = action({
   args: {
-    taskId: v.id("tasks"),
+    taskId: v.id('tasks'),
   },
-  handler: async (
-    ctx,
-    args
-  ): Promise<{ success: boolean; content?: string; error?: string }> => {
+  handler: async (ctx, args): Promise<{ success: boolean; content?: string; error?: string }> => {
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) {
-      throw new Error("Authentication required");
+      throw new Error('Authentication required');
     }
 
     try {
@@ -27,13 +19,13 @@ export const supportTask = action({
 
       const task = await ctx.runQuery(api.tasks.get, { id: args.taskId });
       if (!task) {
-        throw new Error("Task not found");
+        throw new Error('Task not found');
       }
 
       // Set status to generating immediately
       await ctx.runMutation(api.tasks.updateAISupport, {
         taskId: args.taskId,
-        status: "generating",
+        status: 'generating',
       });
 
       const prompt: string = `
@@ -43,14 +35,10 @@ create an execution plan, and summarize the support content in markdown format.
 
 Task Information:
 - Title: ${task.title}
-- Description: ${task.description || "No description provided"}
-- Category: ${task.category || "No category"}
+- Description: ${task.description || 'No description provided'}
+- Category: ${task.category || 'No category'}
 - Priority: ${task.priority}
-${
-  task.deadline
-    ? `- Deadline: ${new Date(task.deadline).toLocaleDateString("en-US")}`
-    : ""
-}
+${task.deadline ? `- Deadline: ${new Date(task.deadline).toLocaleDateString('en-US')}` : ''}
 
 Please provide comprehensive support from the following perspectives:
 
@@ -83,21 +71,16 @@ Please output in markdown format with a readable and well-structured layout.
         const aiResponse = await callAI(createUserMessage(prompt));
         supportContent = aiResponse.content;
         cost = aiResponse.cost || 0;
-        totalTokens =
-          aiResponse.tokens ||
-          estimateTokens(prompt) + estimateTokens(supportContent);
+        totalTokens = aiResponse.tokens || estimateTokens(prompt) + estimateTokens(supportContent);
       } catch (aiError) {
-        console.warn(
-          `${AI_PROVIDER} execution error, using fallback response:`,
-          aiError
-        );
+        console.warn(`${AI_PROVIDER} execution error, using fallback response:`, aiError);
         // フォールバック: 静的なテンプレート応答
         supportContent = `
 # Task Support: ${task.title}
 
 ## Background and Purpose Analysis
 This task is set as "${task.title}" with the following description:
-${task.description || "No description provided"}
+${task.description || 'No description provided'}
 
 ## Execution Plan Development
 1. **Information Gathering**: Collect information and resources related to the task
@@ -106,18 +89,12 @@ ${task.description || "No description provided"}
 4. **Verification**: Confirm completion of each step
 
 ## Related Information and Resources
-- Category: ${task.category || "No category"}
+- Category: ${task.category || 'No category'}
 - Priority: ${task.priority}
-${
-  task.deadline
-    ? `- Deadline: ${new Date(task.deadline).toLocaleDateString("en-US")}`
-    : ""
-}
+${task.deadline ? `- Deadline: ${new Date(task.deadline).toLocaleDateString('en-US')}` : ''}
 
 ## Implementation Notes
-- Since the priority is ${
-          task.priority
-        }, please allocate resources appropriately
+- Since the priority is ${task.priority}, please allocate resources appropriately
 - If there's a deadline, plan with sufficient buffer time
 
 ## Next Actions
@@ -131,7 +108,7 @@ We recommend starting with information gathering and then creating a specific pl
       // Update task with completed AI support
       await ctx.runMutation(api.tasks.updateAISupport, {
         taskId: args.taskId,
-        status: "completed",
+        status: 'completed',
         content: supportContent,
       });
 
@@ -143,7 +120,7 @@ We recommend starting with information gathering and then creating a specific pl
       const currentConfig = getCurrentProviderConfig();
       await ctx.runMutation(api.ai.logAIContent, {
         taskId: args.taskId,
-        type: "suggestion",
+        type: 'suggestion',
         content: supportContent,
         metadata: {
           provider: AI_PROVIDER,
@@ -155,20 +132,18 @@ We recommend starting with information gathering and then creating a specific pl
 
       return { success: true, content: supportContent };
     } catch (error) {
-      console.error("Task support error:", error);
+      console.error('Task support error:', error);
 
       // Update status to error
       await ctx.runMutation(api.tasks.updateAISupport, {
         taskId: args.taskId,
-        status: "error",
+        status: 'error',
       });
 
       return {
         success: false,
         error:
-          error instanceof Error
-            ? error.message
-            : "An error occurred while executing task support",
+          error instanceof Error ? error.message : 'An error occurred while executing task support',
       };
     }
   },
